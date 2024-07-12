@@ -1,0 +1,7 @@
+{
+  "exec": "ts-node src/server.ts",
+  "watch": ["src"],
+  "ignore": ["build", "src/routes.ts", "src/__test__"],
+  "ext": "ts,json",
+  "verbose": true
+}

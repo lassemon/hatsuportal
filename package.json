@@ -1,0 +1,23 @@
+{
+  "name": "hatsuportal",
+  "private": true,
+  "version": "1.0.0",
+  "license": "ISC",
+  "scripts": {
+    "clean:buildinfo": "npx --yes rimraf -g \"packages/**/tsconfig.tsbuildinfo\"",
+    "clean:lib": "npx --yes rimraf -g \"packages/**/lib\"",
+    "clean:build": "npm run clean:lib && npm run clean:buildinfo",
+    "clean:node_modules": "npx --yes rimraf -g \"packages/**/node_modules\" && npx --yes rimraf backend/node_modules && npx --yes rimraf frontend/node_modules",
+    "clean": "npm run clean:lib && npm run clean:buildinfo && npm run clean:node_modules",
+    "build": "tsc -b tsconfig.build.json",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/*"
+  ],
+  "dependencies": {
+    "typescript": "^5.4.5"
+  }
+}

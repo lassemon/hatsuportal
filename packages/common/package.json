@@ -1,0 +1,31 @@
+{
+  "name": "@hatsuportal/common",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^20.12.13",
+    "@types/uuid": "^9.0.8",
+    "luxon": "^3.4.4",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.3.5",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.0.4"
+  }
+}

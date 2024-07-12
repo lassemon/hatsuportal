@@ -1,0 +1,47 @@
+version: '3.8'
+
+volumes:
+  hatsuportal_data:
+
+services:
+  db:
+    image: mariadb:10.6.16
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+      MARIADB_DATABASE: hatsuportal
+      MARIADB_USER: development
+      MARIADB_PASSWORD: development123
+    volumes:
+      - hatsuportal_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - .:/app
+      - /app/node_modules # Ignore the node_modules in the host
+      - /app/backend/node_modules # Ignore backend node_modules in the host
+      - /app/frontend/node_modules # Ignore frontend node_modules in the host
+    ports:
+      - '3000:3000' # Frontend
+      - '80:80' # Backend
+    entrypoint: /app/entrypoint.sh
+    environment:
+      DATABASE_HOST: db
+      DATABASE_USER: development
+      DATABASE_PASSWORD: development123
+      DATABASE_SCHEMA: hatsuportal

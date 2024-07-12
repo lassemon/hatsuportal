@@ -1,0 +1,70 @@
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@fontsource/roboto": "^5.0.13",
+    "@hatsuportal/application": "1.0.0",
+    "@hatsuportal/common": "1.0.0",
+    "@hatsuportal/domain": "1.0.0",
+    "@hatsuportal/infrastructure": "^1.0.0",
+    "@mui/icons-material": "^5.15.19",
+    "@mui/lab": "^5.0.0-alpha.170",
+    "@mui/material": "^5.15.19",
+    "@mui/styles": "^5.15.19",
+    "@testing-library/jest-dom": "^4.2.4",
+    "@testing-library/react": "^9.5.0",
+    "@testing-library/user-event": "^7.2.1",
+    "@types/jest": "^29.5.12",
+    "@types/lodash": "^4.17.4",
+    "@types/luxon": "^3.4.2",
+    "@types/node": "^20.13.0",
+    "@types/react": "^17.0.69",
+    "@types/react-dom": "^17.0.22",
+    "@types/showdown": "^2.0.6",
+    "@types/uuid": "^9.0.8",
+    "@vitejs/plugin-react": "^4.3.0",
+    "array-move": "^4.0.0",
+    "classnames": "^2.5.1",
+    "jotai": "^2.8.2",
+    "lodash": "^4.17.21",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-error-boundary": "^4.0.13",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.22.0",
+    "react-smooth-dnd": "^0.11.1",
+    "remark-gfm": "^4.0.0",
+    "showdown": "^2.1.0",
+    "tss-react": "^4.9.10",
+    "typescript": "^5.4.5",
+    "uuid": "9.0.1",
+    "vite": "^5.2.12",
+    "vite-tsconfig-paths": "^4.3.2"
+  },
+  "scripts": {
+    "watch": "vite",
+    "watch:docker": "vite --open false",
+    "build": "tsc && vite build",
+    "prepreview": "npm run build",
+    "preview": "vite preview"
+  },
+  "proxy": "http://localhost",
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

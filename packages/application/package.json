@@ -1,0 +1,32 @@
+{
+  "name": "@hatsuportal/application",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hatsuportal/common": "^1.0.0",
+    "@hatsuportal/domain": "^1.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/lodash": "^4.17.4",
+    "bcryptjs": "^2.4.3",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vite": "^5.3.5",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.0.4"
+  }
+}
