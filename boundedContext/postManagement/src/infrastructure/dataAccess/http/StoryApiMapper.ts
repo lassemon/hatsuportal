@@ -1,0 +1,195 @@
+import { IStoryApiMapper } from '../../../application/dataAccess/http/IStoryApiMapper'
+import {
+  CreateStoryInputDTO,
+  DeleteStoryInputDTO,
+  FindStoryInputDTO,
+  RemoveImageFromStoryInputDTO,
+  StorySearchCriteriaDTO,
+  UpdateStoryImageInputDTO,
+  UpdateStoryInputDTO,
+  StoryDTO,
+  StoryWithRelationsDTO
+} from '../../../application/dtos'
+import {
+  CreateStoryRequest,
+  SearchStoriesRequest,
+  StoryResponse,
+  StoryWithRelationsResponse,
+  TagInputRequest,
+  UpdateStoryRequest
+} from '@hatsuportal/contracts'
+import { InvalidRequestError } from '@hatsuportal/platform'
+import _ from 'lodash'
+import { castToEnum, OrderEnum, SortableKeyEnum, validateAndCastEnum, VisibilityEnum, withField } from '@hatsuportal/common'
+
+const DEFAULT_STORIES_PER_PAGE = 50
+const DEFAULT_PAGE_NUMBER = 0
+
+export class StoryApiMapper implements IStoryApiMapper {
+  constructor() {
+    this.toResponseWithRelations = this.toResponseWithRelations.bind(this)
+  }
+
+  public toCreateStoryInputDTO(createRequest: CreateStoryRequest): CreateStoryInputDTO {
+    this.assertTagInputRequests(createRequest.tags)
+    return {
+      visibility: validateAndCastEnum(createRequest.visibility, VisibilityEnum),
+      image: createRequest.image
+        ? {
+            mimeType: createRequest.image?.mimeType,
+            size: createRequest.image?.size,
+            base64: createRequest.image?.base64
+          }
+        : null,
+      title: createRequest.title
+        .split(' ')
+        .map((namepart) => _.capitalize(namepart))
+        .join(' '),
+      body: createRequest.body,
+      tags: createRequest.tags ?? []
+    }
+  }
+
+  public toUpdateStoryInputDTO(updateStoryRequest: UpdateStoryRequest, storyId: string): UpdateStoryInputDTO {
+    this.assertTagInputRequests(updateStoryRequest.tags ?? [])
+    let updateStoryData: UpdateStoryInputDTO = {
+      id: storyId
+    }
+
+    if (updateStoryRequest.visibility) {
+      updateStoryData = withField(
+        updateStoryData,
+        'visibility',
+        validateAndCastEnum(updateStoryRequest.visibility, VisibilityEnum)
+      ) as UpdateStoryInputDTO
+    }
+
+    if (updateStoryRequest.title) {
+      updateStoryData = withField(updateStoryData, 'title', updateStoryRequest.title) as UpdateStoryInputDTO
+    }
+
+    if (updateStoryRequest.body) {
+      updateStoryData = withField(updateStoryData, 'body', updateStoryRequest.body) as UpdateStoryInputDTO
+    }
+
+    if (updateStoryRequest.tags) {
+      updateStoryData = withField(updateStoryData, 'tags', updateStoryRequest.tags) as UpdateStoryInputDTO
+    }
+
+    // undefined: no change to image
+    let updateStoryImageData: UpdateStoryImageInputDTO | null | undefined = undefined
+
+    // null: remove image
+    if (updateStoryRequest.image === null) {
+      updateStoryImageData = null
+    }
+
+    // new image: replace image
+    if (updateStoryRequest.image !== undefined && updateStoryRequest.image !== null) {
+      updateStoryImageData = {
+        mimeType: updateStoryRequest.image.mimeType,
+        size: updateStoryRequest.image.size,
+        base64: updateStoryRequest.image.base64
+      }
+    }
+
+    return {
+      ...updateStoryData,
+      ...(updateStoryImageData !== undefined ? { image: updateStoryImageData } : {})
+    }
+  }
+
+  toFindStoryInputDTO(storyIdToFind: string): FindStoryInputDTO {
+    return {
+      storyIdToFind
+    }
+  }
+
+  public toStorySearchCriteriaDTO(searchStoriesRequest: SearchStoriesRequest): StorySearchCriteriaDTO {
+    let parsedVisibility: VisibilityEnum[] = []
+    if (!_.isEmpty(searchStoriesRequest.visibility)) {
+      parsedVisibility = _.uniq(searchStoriesRequest.visibility?.map((visibility) => validateAndCastEnum(visibility, VisibilityEnum)))
+    }
+
+    return {
+      order: castToEnum(searchStoriesRequest.order, OrderEnum, OrderEnum.Ascending), // set default value when searching
+      orderBy: castToEnum(searchStoriesRequest.orderBy, SortableKeyEnum, SortableKeyEnum.TITLE), // set default value when searching
+      storiesPerPage: searchStoriesRequest.storiesPerPage ?? DEFAULT_STORIES_PER_PAGE,
+      pageNumber: searchStoriesRequest.pageNumber ?? DEFAULT_PAGE_NUMBER,
+      onlyMyStories: searchStoriesRequest.onlyMyStories,
+      search: searchStoriesRequest.search,
+      visibility: _.compact(parsedVisibility),
+      hasImage: searchStoriesRequest.hasImage
+    }
+  }
+
+  public toDeleteStoryInputDTO(storyIdToDelete?: string): DeleteStoryInputDTO {
+    if (!storyIdToDelete) {
+      throw new InvalidRequestError('Missing required path parameter "storyId"')
+    }
+
+    return {
+      storyIdToDelete
+    }
+  }
+
+  public toRemoveImageFromStoryInputDTO(storyIdFromWhichToRemoveImage: string): RemoveImageFromStoryInputDTO {
+    if (!storyIdFromWhichToRemoveImage) {
+      throw new InvalidRequestError('Missing required path parameter "storyId"')
+    }
+
+    return {
+      storyIdFromWhichToRemoveImage
+    }
+  }
+
+  public toResponse(story: StoryDTO): StoryResponse {
+    return {
+      id: story.id,
+      title: story.title,
+      body: story.body,
+      visibility: story.visibility,
+      coverImageId: story.coverImageId,
+      createdById: story.createdById,
+      createdAt: story.createdAt,
+      updatedAt: story.updatedAt,
+      tagIds: story.tagIds
+    }
+  }
+
+  public toResponseWithRelations(story: StoryWithRelationsDTO): StoryWithRelationsResponse {
+    return {
+      id: story.id,
+      visibility: story.visibility,
+      title: story.title,
+      body: story.body,
+      createdById: story.createdById,
+      createdAt: story.createdAt,
+      updatedAt: story.updatedAt,
+      createdByName: story.createdByName,
+      coverImage: story.coverImage,
+      imageLoadState: story.imageLoadState,
+      imageLoadError: story.imageLoadError ?? null,
+      tags: story.tags,
+      commentConnection: {
+        totalCount: story.commentListChunk.comments.length,
+        comments: story.commentListChunk.comments,
+        nextCursor: story.commentListChunk.nextCursor
+      }
+    }
+  }
+
+  private assertTagInputRequests(tags: unknown[]): asserts tags is TagInputRequest[] {
+    for (let i = 0; i < tags.length; i++) {
+      const t = tags[i]
+      if (t === null || t === undefined || typeof t !== 'object' || Array.isArray(t)) {
+        throw new InvalidRequestError(`tags[${i}] must be an object with either id or name`)
+      }
+      const hasId = 'id' in t && typeof (t as { id?: unknown }).id === 'string'
+      const hasName = 'name' in t && typeof (t as { name?: unknown }).name === 'string'
+      if ((hasId && hasName) || (!hasId && !hasName)) {
+        throw new InvalidRequestError(`tags[${i}] must be exactly { id: string } or { name: string }`)
+      }
+    }
+  }
+}

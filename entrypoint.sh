@@ -1,13 +1,10 @@
 #!/bin/sh
+set -e # causes the script to abort if migrations fail, preventing a broken server from starting.
 
-# Disable automatic opening of the browser
-export BROWSER=none
+#The migrations step here is a secondary safety net.
+# The primary migration trigger is the release_command in fly.toml which runs before any new machine starts.
+echo "Running database migrations..."
+cd /app/backend && ../node_modules/.bin/node-pg-migrate up -m migrations
 
-# Start the backend watch
-(cd backend && npm run watch) &
-
-# Start the frontend watch
-(cd frontend && npm run watch:docker)
-
-# Keep the container running
-tail -f /dev/null
+echo "Starting server..."
+exec node /app/backend/build/server.js
