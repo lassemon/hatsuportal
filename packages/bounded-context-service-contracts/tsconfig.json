@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.package.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib"
+  },
+  "references": [{ "path": "../../packages/platform" }],
+  "include": ["src/**/*", "src/__test__/**/*", "types/**/*.d.ts"],
+  "exclude": ["node_modules", "lib"]
+}

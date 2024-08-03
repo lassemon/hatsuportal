@@ -2,7 +2,7 @@ html {
   min-height: 100%;
   /* don't set height: 100% here, it will squeeze child content */
   width: 100%;
-  font-size: 15px;
+  font-size: 16px;
   margin: 0;
   padding: 0;
   position: relative;
@@ -11,26 +11,14 @@ html {
   scrollbar-width: thin;
 }
 
-@media (max-width: 500px) {
-  html {
-    font-size: 10px;
-  }
-}
-
-@media (max-width: 700px) {
-  html {
-    font-size: 12px;
-  }
-}
-
 body {
-  min-height: 100dvh;
+  min-height: 100svh;
   height: 100%;
   position: relative;
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Noto Sans', 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
+  font-family: 'Be Vietnam Pro', 'Noto Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -48,7 +36,9 @@ input[type='number'] {
 
 input:-webkit-autofill,
 input:-webkit-autofill:focus {
-  transition: background-color 0s 600000s, color 0s 600000s !important;
+  transition:
+    background-color 0s 600000s,
+    color 0s 600000s !important;
 }
 
 input:-webkit-autofill:-webkit-autofill {
@@ -68,4 +58,8 @@ img {
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+p {
+  margin-bottom: 0.5em;
 }

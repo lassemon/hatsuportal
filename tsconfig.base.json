@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./src",
+    /* --------------------------------------------------------
+     *  Runtime target / language features
+     * ------------------------------------------------------ */
+    // Node 22 and all modern browsers fully implement ES2022+
+    "target": "es2022", // <-- async/await, class fields, Error.cause
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    /* --------------------------------------------------------
+     *  Strictness
+     * ------------------------------------------------------ */
+    "strict": true,
+    "strictPropertyInitialization": true /* Check for class properties that are declared but not set in the constructor. */,
+    "noUnusedLocals": true /* Enable error reporting when local variables aren't read. */,
+    "noImplicitReturns": true /* Enable error reporting for codepaths that do not explicitly return in a function. */,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+    /* --------------------------------------------------------
+     *  Build outputs
+     * ------------------------------------------------------ */
+    "incremental": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    /* --------------------------------------------------------
+     *  Misc
+     * ------------------------------------------------------ */
+    "paths": {
+      "@hatsuportal/contracts": ["packages/contracts"],
+      "@hatsuportal/bounded-context-service-contracts": ["packages/bounded-context-service-contracts"],
+      "@hatsuportal/platform": ["packages/platform"],
+      "@hatsuportal/common": ["packages/common"],
+      "@hatsuportal/shared-kernel": ["boundedContext/shared-kernel"],
+      "@hatsuportal/user-management": ["boundedContext/userManagement"],
+      "@hatsuportal/post-management": ["boundedContext/postManagement"],
+      "@hatsuportal/media-management": ["boundedContext/mediaManagement"]
+    }
+  },
+  "exclude": ["node_modules", "build"]
+}

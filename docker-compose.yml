@@ -1,28 +1,21 @@
-version: '3.8'
-
 volumes:
   hatsuportal_data:
 
 services:
   db:
-    image: mariadb:10.6.16
+    image: postgres:17.5
     restart: always
     environment:
-      MARIADB_ROOT_PASSWORD: example
-      MARIADB_DATABASE: hatsuportal
-      MARIADB_USER: development
-      MARIADB_PASSWORD: development123
+      POSTGRES_DB: hatsuportal
+      POSTGRES_USER: development
+      POSTGRES_PASSWORD: development123
     volumes:
-      - hatsuportal_data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - hatsuportal_data:/var/lib/postgresql/data
+      - ./dev-db/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - '3306:3306'
+      - '5432:5432'
     healthcheck:
-      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
+      test: ['CMD', 'pg_isready', '-U', 'development', '-d', 'hatsuportal']
   app:
     build:
       context: .

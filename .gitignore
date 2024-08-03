@@ -5,5 +5,8 @@
 **/coveragegi
 **/npm-debug.log*
 backend/images
-packages/**/lib
+/**/lib
+/**/coverage
 **/tsconfig.tsbuildinfo
+.vscode
+.claude
