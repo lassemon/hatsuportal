@@ -1,4 +1,5 @@
 {
+  "extends": "../tsconfig.base.json",
   "ts-node": {
     // Do not forget to `npm i -D tsconfig-paths`
     "require": ["tsconfig-paths/register"]
@@ -15,7 +16,7 @@
     // "disableReferencedProjectLoad": true,             /* Reduce the number of projects loaded automatically by TypeScript. */
 
     /* Language and Environment */
-    "target": "es2021" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "target": "es2022" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
     // "lib": [],                                        /* Specify a set of bundled library declaration files that describe the target runtime environment. */
     // "jsx": "preserve",                                /* Specify what JSX code is generated. */
     "experimentalDecorators": true /* Enable experimental support for legacy experimental decorators. */,
@@ -32,13 +33,19 @@
     "module": "commonjs" /* Specify what module code is generated. */,
     // "rootDir": "./",                                  /* Specify the root folder within your source files. */
     "moduleResolution": "node" /* Specify how TypeScript looks up a file from a given module specifier. */,
-    "baseUrl": "./src" /* Specify the base directory to resolve non-relative module names. */,
+    "baseUrl": "./src",
     "paths": {
-      "/*": ["./*"],
-      "@hatsuportal/common": ["../common"]
+      "@hatsuportal/contracts": ["../packages/contracts"],
+      "@hatsuportal/platform": ["../packages/platform"],
+      "@hatsuportal/common": ["../packages/common"],
+      "@hatsuportal/shared-kernel": ["boundedContext/shared-kernel"],
+      "@hatsuportal/bounded-context-service-contracts": ["../packages/bounded-context-service-contracts"],
+      "@hatsuportal/user-management": ["boundedContext/userManagement"],
+      "@hatsuportal/post-management": ["boundedContext/postManagement"],
+      "@hatsuportal/media-management": ["boundedContext/mediaManagement"]
     } /* Specify a set of entries that re-map imports to additional lookup locations. */,
     // "rootDirs": [],                                   /* Allow multiple folders to be treated as one when resolving modules. */
-    "typeRoots": ["./node_modules/@types", "src/common/types"] /* Specify multiple folders that act like './node_modules/@types'. */,
+    "typeRoots": ["./node_modules/@types", "src/types"] /* Specify multiple folders that act like './node_modules/@types'. */,
     // "types": [],                                      /* Specify type package names to be included without being referenced in a source file. */
     // "allowUmdGlobalAccess": true,                     /* Allow accessing UMD globals from modules. */
     // "moduleSuffixes": [],                             /* List of file name suffixes to search when resolving a module. */
@@ -113,11 +120,15 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
-  "exclude": ["node_modules", "src/application/security/passport-auth-template.ts"],
+  "exclude": ["node_modules", "build"],
   "references": [
+    { "path": "../packages/contracts" },
+    { "path": "../packages/bounded-context-service-contracts" },
+    { "path": "../packages/platform" },
     { "path": "../packages/common" },
-    { "path": "../packages/domain" },
-    { "path": "../packages/application" },
-    { "path": "../packages/infrastructure" }
+    { "path": "../boundedContext/shared-kernel" },
+    { "path": "../boundedContext/userManagement" },
+    { "path": "../boundedContext/postManagement" },
+    { "path": "../boundedContext/mediaManagement" }
   ]
 }

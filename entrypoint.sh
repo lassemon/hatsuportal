@@ -4,10 +4,8 @@
 export BROWSER=none
 
 # Start the backend watch
-(cd backend && npm run watch) &
+npm run watch
 
-# Start the frontend watch
-(cd frontend && npm run watch:docker)
 
 # Keep the container running
 tail -f /dev/null

@@ -1,7 +1,7 @@
 {
   "entryFile": "src/server.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["src/**/*Controller.ts"],
+  "controllerPathGlobs": ["src/infrastructure/controllers/*Controller.ts"],
   "spec": {
     "outputDirectory": "build",
     "basePath": "/api/v1",
@@ -29,6 +29,7 @@
   "routes": {
     "basePath": "/api/v1",
     "routesDir": "./src",
-    "authenticationModule": "./src/auth/AuthenticationProvider.ts"
+    "authenticationModule": "./src/infrastructure/auth/AuthenticationProvider.ts",
+    "iocModule": "./src/container.ts"
   }
 }
