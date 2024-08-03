@@ -1,0 +1,8 @@
+export type { IAuthApiMapper } from './http/mappers/IAuthApiMapper'
+export type { ICommentApiMapper } from './http/mappers/ICommentApiMapper'
+export type { IHttpErrorMapper } from './http/mappers/IHttpErrorMapper'
+export type { IImageApiMapper } from './http/mappers/IImageApiMapper'
+export type { IProfileApiMapper } from './http/mappers/IProfileApiMapper'
+export type { IStoryApiMapper } from './http/mappers/IStoryApiMapper'
+export type { ITagApiMapper } from './http/mappers/ITagApiMapper'
+export type { IUserApiMapper } from './http/mappers/IUserApiMapper'

@@ -1,0 +1,16 @@
+volumes:
+  hatsuportal_data:
+
+services:
+  db:
+    image: postgres:17.5
+    restart: always
+    environment:
+      POSTGRES_USER: development
+      POSTGRES_PASSWORD: development123
+      POSTGRES_DB: hatsuportal
+    volumes:
+      - hatsuportal_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '5432:5432'

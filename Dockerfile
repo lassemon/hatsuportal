@@ -11,10 +11,14 @@ COPY package*.json ./
 # Copy workspace package.json files
 COPY backend/package.json backend/
 COPY frontend/package.json frontend/
-COPY packages/application/package.json packages/application/
+COPY boundedContext/mediaManagement/package.json boundedContext/mediaManagement/
+COPY boundedContext/postManagement/package.json boundedContext/postManagement/
+COPY boundedContext/userManagement/package.json boundedContext/userManagement/
+COPY boundedContext/shared-kernel/package.json boundedContext/shared-kernel/
+COPY packages/bounded-context-service-contracts/package.json packages/bounded-context-service-contracts/
+COPY packages/contracts/package.json packages/contracts/
+COPY packages/platform/package.json packages/platform/
 COPY packages/common/package.json packages/common/
-COPY packages/domain/package.json packages/domain/
-COPY packages/infrastructure/package.json packages/infrastructure/
 
 # Install dependencies at the root
 RUN npm install
