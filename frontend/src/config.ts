@@ -1,5 +1,11 @@
-const defaults = {
-  localStorageInvalidateTimeInMilliseconds: 15000
+export interface Configs {
+  localStorageInvalidateTimeInMilliseconds: number
+  textColumnMaxWidth: string
 }
 
-export default defaults
+const defaultConfigs: Configs = {
+  localStorageInvalidateTimeInMilliseconds: 15000,
+  textColumnMaxWidth: '120ch'
+}
+
+export default defaultConfigs

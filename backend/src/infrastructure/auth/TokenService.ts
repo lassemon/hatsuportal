@@ -1,0 +1,98 @@
+import jwt from 'jsonwebtoken'
+import { UserDTO, JwtPayload } from '@hatsuportal/user-management'
+import { AuthenticationError } from '@hatsuportal/platform'
+import { dateStringFromUnixTime, unixtimeNow } from '@hatsuportal/common'
+import { Logger } from '@hatsuportal/platform'
+import { JwtSecretMissingError } from 'application/errors/JwtSecretMissingError'
+import { RefreshTokenMissingError } from 'application/errors/RefreshTokenMissingError'
+
+const logger = new Logger('TokenService')
+
+export class TokenService {
+  private identifier: string
+
+  constructor() {
+    this.identifier = process.env.IDENTIFIER || 'localhost'
+  }
+
+  public createAuthToken = (user: UserDTO): string => {
+    if (!process.env.JWT_SECRET) {
+      throw new JwtSecretMissingError()
+    }
+
+    const jwtTokenLife = parseInt(process.env.TOKEN_EXP || '15', 10)
+
+    const jwtSecret = process.env.JWT_SECRET
+    const expires = unixtimeNow({ add: { minutes: jwtTokenLife } })
+    const authToken = jwt.sign(
+      {
+        exp: expires,
+        userId: user.id
+      },
+      jwtSecret,
+      {
+        issuer: this.identifier,
+        subject: this.identifier + '|' + user.id
+      }
+    )
+
+    logger.debug(
+      `CREATED AUTH TOKEN FOR ${user.name} THAT IS ISSUED AT ${dateStringFromUnixTime(
+        this.decodeToken(authToken).iat
+      )} AND EXPIRES IN ${dateStringFromUnixTime(this.decodeToken(authToken).exp)}`
+    )
+
+    return authToken
+  }
+
+  public createRefreshToken = (user: UserDTO): string => {
+    if (!process.env.REFRESH_TOKEN_SECRET) {
+      throw new RefreshTokenMissingError()
+    }
+
+    const refreshTokenLife = parseInt(process.env.REFRESH_TOKEN_EXP || '720', 10)
+
+    const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET
+    const expires = unixtimeNow({ add: { minutes: refreshTokenLife } })
+    const refreshToken = jwt.sign(
+      {
+        exp: expires,
+        userId: user.id
+      },
+      refreshTokenSecret,
+      {
+        issuer: this.identifier,
+        subject: this.identifier + '|' + user.id
+      }
+    )
+
+    logger.debug(
+      `CREATED REFRESH TOKEN FOR ${user.name} THAT IS ISSUED AT ${dateStringFromUnixTime(
+        this.decodeToken(refreshToken).iat
+      )} AND EXPIRES IN ${dateStringFromUnixTime(this.decodeToken(refreshToken).exp)}`
+    )
+
+    return refreshToken
+  }
+
+  public verifyRefreshToken = (token: string): JwtPayload => {
+    if (!process.env.REFRESH_TOKEN_SECRET) {
+      throw new RefreshTokenMissingError()
+    }
+
+    try {
+      return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET) as JwtPayload
+    } catch (error) {
+      if (error instanceof Error) {
+        logger.error(error.stack || error.message)
+      } else {
+        logger.error(error)
+      }
+      throw new AuthenticationError('Invalid or expired token')
+    }
+  }
+
+  private decodeToken = (token: string): JwtPayload => {
+    return jwt.decode(token) as JwtPayload
+  }
+}

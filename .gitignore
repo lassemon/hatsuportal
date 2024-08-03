@@ -5,5 +5,10 @@
 **/coveragegi
 **/npm-debug.log*
 backend/images
+boundedContext/**/lib
 packages/**/lib
+backend/**/lib
+/**/coverage
 **/tsconfig.tsbuildinfo
+.vscode
+.claude

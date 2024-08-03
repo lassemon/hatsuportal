@@ -1,0 +1,6 @@
+export { TestConnection } from './dataAccess/adapters/knex/TestConnection'
+export { PersistenceHarnessBase, wirePersistenceHarness } from './dataAccess/PersistenceHarnessBase'
+export { TestUnitOfWork } from './dataAccess/TestUnitOfWork'
+export { TestKnexDataAccessProvider } from './dataAccess/adapters/knex/TestKnexDataAccessProvider'
+export { TestKnexQueryBuilder } from './dataAccess/adapters/knex/TestKnexQueryBuilder'
+export { TestPostgresRepositoryHelpers } from './repositories/TestPostgresRepositoryHelpers'

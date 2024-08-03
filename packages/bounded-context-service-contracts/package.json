@@ -1,0 +1,31 @@
+{
+  "name": "@hatsuportal/bounded-context-service-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "clean": "npx --yes rimraf lib && npx --yes rimraf tsconfig.tsbuildinfo",
+    "reset": "npm run clean && npx --yes rimraf node_modules"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "typesVersions": {
+    "*": {
+      "media/*": [
+        "src/media/*/index.ts"
+      ]
+    }
+  },
+  "dependencies": {
+    "@hatsuportal/platform": "^1.0.0"
+  }
+}
