@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.package.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib"
+  },
+  "references": [
+    { "path": "../../packages/platform" },
+    { "path": "../../packages/common" },
+    { "path": "../../boundedContext/shared-kernel" }
+  ],
+  "exclude": ["node_modules", "lib"]
+}

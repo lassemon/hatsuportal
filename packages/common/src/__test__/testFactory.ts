@@ -1,3 +1,1 @@
-export const fixture = () => {
-  return {}
-}
+export const testFactory = {}

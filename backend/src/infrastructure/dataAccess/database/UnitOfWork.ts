@@ -1,0 +1,69 @@
+import { KnexTransactionProvider } from './connection'
+import { Knex } from 'knex'
+import {
+  ConcurrencyError,
+  DataPersistenceError,
+  IDataConnectionProvider,
+  IDomainEventRepository,
+  ITransactionAware,
+  ITransactionManager
+} from '@hatsuportal/platform'
+import { Logger } from '@hatsuportal/common'
+import { IDomainEventHolder, UniqueId, UnixTimestamp } from '@hatsuportal/shared-kernel'
+
+const logger = new Logger('UnitOfWork')
+
+export class UnitOfWork implements ITransactionManager<UniqueId, UnixTimestamp> {
+  constructor(
+    private readonly domainEventRepository: IDomainEventRepository & ITransactionAware,
+    private readonly connectionProvider: IDataConnectionProvider<Knex>
+  ) {}
+
+  async execute<T extends Array<IDomainEventHolder<UniqueId, UnixTimestamp> | null>>(
+    work: () => Promise<[...T]>,
+    repositories: ITransactionAware[] = []
+  ): Promise<[...T]> {
+    const connection = this.connectionProvider.getConnection()
+
+    return await connection.transaction(async (knexTransaction) => {
+      const transaction = new KnexTransactionProvider(knexTransaction)
+
+      this.domainEventRepository.setTransaction(transaction)
+      repositories.forEach((repo) => repo.setTransaction(transaction))
+
+      try {
+        const domainEventHolders = await work()
+
+        await this.persistToOutbox(domainEventHolders)
+
+        domainEventHolders.forEach((holder) => holder && holder.clearEvents())
+
+        return domainEventHolders
+      } catch (error) {
+        if (!transaction.isCompleted()) {
+          await transaction.rollback(error)
+        }
+        if (error instanceof ConcurrencyError) {
+          throw error
+        }
+        throw new DataPersistenceError({ message: 'Transaction failed', cause: error })
+      } finally {
+        this.domainEventRepository.setTransaction(null)
+        repositories.forEach((repo) => {
+          repo.setTransaction(null)
+          repo.clearLastLoadedMap()
+        })
+      }
+    })
+  }
+
+  private async persistToOutbox<T extends Array<IDomainEventHolder<UniqueId, UnixTimestamp> | null>>(eventHolders: [...T]): Promise<void> {
+    for (const holder of eventHolders) {
+      if (!holder) continue
+      for (const event of holder.domainEvents) {
+        logger.debug(`Persisting event ${event.eventType} for ${holder.id.value}`)
+        await this.domainEventRepository.insert(event)
+      }
+    }
+  }
+}
