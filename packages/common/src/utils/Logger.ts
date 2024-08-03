@@ -1,13 +1,8 @@
-import { DateTime } from 'luxon'
+import { getTimestamp } from './time'
 
+export const DEFAULT_DATE_FORMAT = 'DD-MM-YYYY HH:mm:ssZ'
 export default class Logger {
-  public DATE_FORMAT
-  public name
-
-  constructor(name: string, dateFormat: string = 'DD-MM-YYYY HH:mm:ssZ') {
-    this.name = name
-    this.DATE_FORMAT = dateFormat
-  }
+  constructor(private readonly name: string, private readonly dateFormat: string = DEFAULT_DATE_FORMAT) {}
 
   public debug(message: unknown, ...args: any[]) {
     if (process.env.LOG_LEVEL === 'DEBUG') {
@@ -36,6 +31,6 @@ export default class Logger {
   }
 
   private getTimestamp() {
-    return DateTime.now().toFormat(this.DATE_FORMAT)
+    return getTimestamp(this.dateFormat)
   }
 }
