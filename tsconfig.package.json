@@ -1,19 +1,51 @@
 {
   "compilerOptions": {
-    "incremental": true,
-    "target": "es6",
+    /* --------------------------------------------------------
+     *  Runtime target / language features
+     * ------------------------------------------------------ */
+    // Node 22 and all modern browsers fully implement ES2022+
+    "target": "es2022", // <-- async/await, class fields, Error.cause
+
+    // For a CommonJS bundle keep "commonjs"; if you run ESM on Node use "es2022".
     "module": "commonjs",
-    "lib": ["esnext", "dom"],
+
+    /* --------------------------------------------------------
+     *  Standard library typings
+     * ------------------------------------------------------ */
+    // ES2022.Error unlocks the two-parameter Error constructor.
+    // "DOM" is present only if you compile code that touches window, document, etc.
+    "lib": ["es2022", "DOM"],
+
+    /* --------------------------------------------------------
+     *  Module resolution & interoperability
+     * ------------------------------------------------------ */
+    // Use new Node16/Next modes if you publish dual CJS/ESM; otherwise keep classic.
+    "moduleResolution": "node",
+
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* --------------------------------------------------------
+     *  Strictness
+     * ------------------------------------------------------ */
+    "strict": true,
+    "strictPropertyInitialization": true,
+    "skipLibCheck": true, // keep build fast; libs are well-typed
+    "useUnknownInCatchVariables": true,
+    "noImplicitOverride": true,
+
+    /* --------------------------------------------------------
+     *  Build outputs
+     * ------------------------------------------------------ */
+    "incremental": true,
+    "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
-    "strict": true,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "strictPropertyInitialization": true,
+    "composite": true, // allow project references
+
+    /* --------------------------------------------------------
+     *  Misc
+     * ------------------------------------------------------ */
     "typeRoots": ["./node_modules/@types", "./src/types"]
   }
 }

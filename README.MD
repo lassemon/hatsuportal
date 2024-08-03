@@ -1,3 +1,10 @@
+# Startup
+
+- run `npm install` on the root
+- run `npm run build` on the root
+- run `npm run build` on the backend
+- run `npm run build` on the frontend
+
 # Installing frontend
 
 - run `npm run build` on the root
@@ -23,4 +30,9 @@
 
 - run all unit tests from root by `npm run test`
 - run a single unit test from root by `npm run test -- --testNamePattern <pattern>`
-- e.g. `npm run test -- --testNamePattern can create user`
+- e.g. `npm run test -- --testNamePattern "can create user"`
+
+# Test users
+
+- system:test
+- test:test
