@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.package.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./lib"
+  },
+  "references": [
+    { "path": "../../boundedContext/shared-kernel" },
+    { "path": "../../packages/contracts" },
+    { "path": "../../packages/bounded-context-service-contracts" },
+    { "path": "../../packages/foundation" }
+  ],
+  "exclude": ["node_modules", "lib"]
+}
