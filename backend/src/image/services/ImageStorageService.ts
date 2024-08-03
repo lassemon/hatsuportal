@@ -1,4 +1,5 @@
-import fs from 'fs'
+import path from 'path'
+import { promises as fs } from 'node:fs'
 import { ImageStorageServiceInterface } from '@hatsuportal/application'
 import { Logger } from '@hatsuportal/common'
 import sanitize from 'sanitize-filename'
@@ -9,9 +10,34 @@ const logger = new Logger('ImageStorageService')
 const imagesBasePath = process.env.IMAGES_BASE_PATH || './images'
 
 export class ImageStorageService implements ImageStorageServiceInterface {
+  async writeImageBufferToFile(imageBuffer: Buffer, fileName: string): Promise<void> {
+    const sanitizedFileName = sanitize(fileName)
+    const outputPath = `${imagesBasePath}/${sanitizedFileName}`
+    try {
+      await fs.writeFile(outputPath, imageBuffer)
+    } catch (error: any) {
+      if (error) {
+        throw new UnknownError(
+          error.errno || 500,
+          error.code || 'InternalServerError',
+          `Error writing the file ${fileName} to the filesystem ${error.stack}`
+        )
+      }
+    }
+  }
+
+  async getImageFromFileSystem(fileName: string): Promise<string> {
+    const imagePath = path.resolve(imagesBasePath, fileName)
+    const imageBuffer = await fs.readFile(imagePath)
+    const imageBase64 = imageBuffer.toString('base64')
+    return imageBase64
+  }
+
   async deleteImageFromFileSystem(fileName: string) {
     const unlinkPath = `${imagesBasePath}/${fileName}`
-    fs.unlink(unlinkPath, (error) => {
+    try {
+      await fs.unlink(unlinkPath)
+    } catch (error: any) {
       if (error) {
         throw new UnknownError(
           error.errno || 500,
@@ -20,20 +46,6 @@ export class ImageStorageService implements ImageStorageServiceInterface {
         )
       }
       logger.debug('File removed successfully', fileName)
-    })
-  }
-
-  async writeImageBufferToFile(imageBuffer: Buffer, fileName: string) {
-    const sanitizedFileName = sanitize(fileName)
-    const outputPath = `${imagesBasePath}/${sanitizedFileName}`
-    fs.writeFile(outputPath, imageBuffer, (error) => {
-      if (error) {
-        throw new UnknownError(
-          error.errno || 500,
-          error.code || 'InternalServerError',
-          `Error writing the file ${fileName} to the filesystem ${error.stack}`
-        )
-      }
-    })
+    }
   }
 }

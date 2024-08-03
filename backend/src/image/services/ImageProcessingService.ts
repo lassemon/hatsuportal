@@ -3,8 +3,10 @@ import { ImageProcessingServiceInterface } from '@hatsuportal/application'
 import Jimp from 'jimp'
 import webp from 'webp-converter'
 import fileType from 'file-type'
+import { Logger } from '@hatsuportal/common'
 
 const imagesBasePath = process.env.IMAGES_BASE_PATH || './images'
+const logger = new Logger('ImageProcessingService')
 
 webp.grant_permission()
 
@@ -53,8 +55,8 @@ export class ImageProcessingService implements ImageProcessingServiceInterface {
         return await image.getBufferAsync(Jimp.MIME_PNG)
       }
     } catch (error) {
-      console.error('Error processing image:', error)
-      throw new Error('Failed to process image')
+      logger.error(error)
+      throw new Error('Failed to process image ${}')
     }
   }
 

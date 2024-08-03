@@ -1,7 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { UserService } from './UserService'
 
 describe('UserService', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
   it('validates password change', async ({ unitFixture }) => {
     const user = unitFixture.userDatabaseEntity()
     const userRepositoryMock = unitFixture.userRepositoryMock()

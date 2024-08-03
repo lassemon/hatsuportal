@@ -1,10 +1,6 @@
 import { ApiError, ImageMetadataDTO } from '@hatsuportal/domain'
 import { ImageProcessingServiceInterface, ImageServiceInterface, ImageStorageServiceInterface } from '@hatsuportal/application'
 import mime from 'mime-types'
-import path from 'path'
-import { readFile } from 'fs/promises'
-
-const imagesBasePath = process.env.IMAGES_BASE_PATH || './images'
 
 export class ImageService implements ImageServiceInterface {
   constructor(
@@ -53,10 +49,7 @@ export class ImageService implements ImageServiceInterface {
   }
 
   async getImageFromFileSystem(fileName: string): Promise<string> {
-    const imagePath = path.resolve(imagesBasePath, fileName)
-    const imageBuffer = await readFile(imagePath)
-    const imageBase64 = imageBuffer.toString('base64')
-    return imageBase64
+    return await this.imageStorageService.getImageFromFileSystem(fileName)
   }
 
   async deleteImageFromFileSystem(fileName: string): Promise<void> {

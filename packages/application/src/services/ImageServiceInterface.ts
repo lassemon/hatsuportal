@@ -7,9 +7,9 @@ export interface ImageServiceInterface {
   resizeImageBuffer(imageBuffer: Buffer): Promise<Buffer>
   getBufferMimeType(buffer: Buffer): Promise<string | undefined>
   validateMimeType(imageBuffer: Buffer, metadata: ImageMetadataDTO): Promise<string>
-  writeImageToFileSystem(imageBuffer: Buffer, metadata: ImageMetadataDTO): void
+  writeImageToFileSystem(imageBuffer: Buffer, metadata: ImageMetadataDTO): Promise<void>
   getImageFromFileSystem(fileName: string): Promise<string>
-  deleteImageFromFileSystem(fileName: string): void
+  deleteImageFromFileSystem(fileName: string): Promise<void>
 }
 
 export default ImageServiceInterface

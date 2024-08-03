@@ -43,7 +43,7 @@ export const imageMetadata = (): ImageMetadataDTO => {
     ...{
       id: 'testImageId',
       visibility: Visibility.Public,
-      fileName: 'filename.png',
+      fileName: 'filename',
       mimeType: 'image/png',
       size: 1537565,
       ownerId: '123',
