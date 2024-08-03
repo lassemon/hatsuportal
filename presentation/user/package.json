@@ -1,0 +1,32 @@
+{
+  "name": "@hatsuportal/presentation-user",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests",
+    "clean": "npx --yes rimraf lib && npx --yes rimraf tsconfig.tsbuildinfo",
+    "reset": "npm run clean && npx --yes rimraf node_modules"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hatsuportal/common": "^1.0.0",
+    "@hatsuportal/user-management": "^1.0.0"
+  },
+  "devDependencies": {
+    "lodash": "^4.17.21",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.5",
+    "vite-tsconfig-paths": "^4.3.2",
+    "vitest": "^2.0.4"
+  }
+}
