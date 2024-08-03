@@ -11,6 +11,7 @@
     }
   },
   "scripts": {
+    "build": "tsc -b tsconfig.json",
     "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests"
   },
   "author": "",
@@ -18,6 +19,7 @@
   "dependencies": {
     "@hatsuportal/common": "^1.0.0",
     "@hatsuportal/domain": "^1.0.0",
+    "@hatsuportal/application": "^1.0.0",
     "@types/mime-types": "^2.1.4",
     "lodash": "^4.17.21",
     "luxon": "^3.4.4",

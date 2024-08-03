@@ -1,16 +1,19 @@
 import { NextFunction, Request, Response } from 'express'
 import { Logger } from '@hatsuportal/common'
-import { ApiError } from '@hatsuportal/domain'
-import { ErrorResponseDTO } from '@hatsuportal/application'
 import { ValidateError } from 'tsoa'
+import { HttpError } from '@hatsuportal/presentation'
 
 const logger = new Logger('App')
 
+/**
+ * Failsafe middleware if for any reason an exception it mistakenly thrown from a Controller endpoint
+ */
+
 export const errorMiddleware = (error: Error, request: Request, response: Response, next: NextFunction) => {
   logger.error(error)
-  if (error instanceof ApiError) {
+  if (error instanceof HttpError) {
     const status = error.statusCode || 500
-    const body: ErrorResponseDTO = {
+    const body = {
       message: error.message || 'An error occurred during the request',
       name: error.name,
       status

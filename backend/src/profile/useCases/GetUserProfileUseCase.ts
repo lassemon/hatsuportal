@@ -1,37 +1,20 @@
-import {
-  CountItemsQueryDTO,
-  InsertItemQueryDTO,
-  ProfileResponseDTO,
-  SearchItemsQueryDTO,
-  UpdateItemQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
-} from '@hatsuportal/application'
-import { ItemRepositoryInterface, User } from '@hatsuportal/domain'
+import { ApplicationError, IGetUserProfileUseCase, IGetUserProfileUseCaseOptions } from '@hatsuportal/application'
+import { IStoryRepository } from '@hatsuportal/domain'
 
-interface GetUserProfileUseCaseResponse extends ProfileResponseDTO {}
+export class GetUserProfileUseCase implements IGetUserProfileUseCase {
+  constructor(private readonly storyRepository: IStoryRepository) {}
 
-export interface GetUserProfileUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-}
+  async execute({ user, userProfile }: IGetUserProfileUseCaseOptions) {
+    try {
+      const storiesCreated = await this.storyRepository.countStoriesCreatedByUser(user.id)
 
-export type GetUserProfileUseCaseInterface = UseCaseInterface<GetUserProfileUseCaseOptions, GetUserProfileUseCaseResponse>
-
-export class GetUserProfileUseCase implements GetUserProfileUseCaseInterface {
-  constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >
-  ) {}
-
-  async execute({ user }: GetUserProfileUseCaseOptions): Promise<GetUserProfileUseCaseResponse> {
-    const itemsCreated = await this.itemRepository.countItemsCreatedByUser(user.id)
-
-    return {
-      itemsCreated
+      userProfile({ storiesCreated })
+    } catch (error) {
+      if (!(error instanceof ApplicationError)) {
+        if (error instanceof Error) throw new ApplicationError(error.stack || error.message)
+        throw new ApplicationError(String(error))
+      }
+      throw error
     }
   }
 }

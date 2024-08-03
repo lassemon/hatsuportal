@@ -2,15 +2,14 @@ import { isEmpty } from 'lodash'
 import { PassportStatic } from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt, VerifiedCallback, StrategyOptions } from 'passport-jwt'
 import express from 'express'
-import { ApiError, User, UserRepositoryInterface } from '@hatsuportal/domain'
-import { JwtPayload } from '@hatsuportal/application'
-import { InsertUserQueryDTO, UpdateUserQueryDTO } from '@hatsuportal/application'
+import { User, IUserRepository, UserId } from '@hatsuportal/domain'
+import { AuthenticationError, JwtPayload } from '@hatsuportal/application'
 import UserRepository from '/user/UserRepository'
 
 export default class Authentication {
   private passport: PassportStatic
   private static instance: Authentication
-  private userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>
+  private userRepository: IUserRepository
 
   constructor(passport: PassportStatic) {
     this.passport = passport
@@ -36,7 +35,7 @@ export default class Authentication {
       this.passport.use(
         new JwtStrategy(options, async (jwtPayload: JwtPayload, done: VerifiedCallback) => {
           try {
-            const user = await this.userRepository.findById(jwtPayload.userId)
+            const user = await this.userRepository.findById(new UserId(jwtPayload.userId))
 
             if (isEmpty(user)) {
               return done(user, false)
@@ -68,7 +67,7 @@ export default class Authentication {
           }
           if (!user) {
             // Authentication failed
-            throw new ApiError(401, 'Unauthorized')
+            throw new AuthenticationError('Unauthorized')
           }
           if (user) {
             req.user = user

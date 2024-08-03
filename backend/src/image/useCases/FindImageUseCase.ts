@@ -1,33 +1,38 @@
 import {
-  ImageServiceInterface,
-  InsertImageMetadataQueryDTO,
-  UpdateImageMetadataQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IImageService,
+  IFindImageUseCase,
+  IFindImageUseCaseOptions,
+  IImageMetadataApplicationMapper,
+  IImageApplicationMapper,
+  NotFoundError,
+  ApplicationError
 } from '@hatsuportal/application'
-import { ApiError, Image, ImageDTO, ImageMetadataRepositoryInterface } from '@hatsuportal/domain'
+import { Image, IImageMetadataRepository, PostId } from '@hatsuportal/domain'
 
-export interface FindImageUseCaseOptions extends UseCaseOptionsInterface {
-  imageId: string
-}
-
-export type FindImageUseCaseInterface = UseCaseInterface<FindImageUseCaseOptions, ImageDTO>
-
-export class FindImageUseCase implements FindImageUseCaseInterface {
+export class FindImageUseCase implements IFindImageUseCase {
   constructor(
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly imageService: ImageServiceInterface
+    private readonly imageMetadataRepository: IImageMetadataRepository,
+    private readonly imageService: IImageService,
+    private readonly imageMapper: IImageApplicationMapper,
+    private readonly imageMetadataMepper: IImageMetadataApplicationMapper
   ) {}
 
-  async execute({ imageId }: FindImageUseCaseOptions): Promise<ImageDTO> {
-    const imageMetadata = await this.imageMetadataRepository.findById(imageId)
-    if (!imageMetadata || !imageMetadata.fileName) {
-      throw new ApiError(404, 'NotFound', `Image metadata for ${imageId} was NotFound from the database.`)
+  async execute({ imageId, imageFound }: IFindImageUseCaseOptions): Promise<void> {
+    try {
+      const imageMetadata = await this.imageMetadataRepository.findById(new PostId(imageId))
+      if (!imageMetadata || !imageMetadata.fileName) {
+        throw new NotFoundError(`Image metadata for ${imageId} was NotFound from the database.`)
+      }
+
+      const imageBase64 = await this.imageService.getImageFromFileSystem(imageMetadata.storageFileName)
+
+      imageFound(this.imageMapper.toDTO(new Image({ ...this.imageMetadataMepper.toDTO(imageMetadata), base64: imageBase64 })))
+    } catch (error) {
+      if (!(error instanceof ApplicationError)) {
+        if (error instanceof Error) throw new ApplicationError(error.stack || error.message)
+        throw new ApplicationError(String(error))
+      }
+      throw error
     }
-    const fileName = imageMetadata.fileName
-
-    const imageBase64 = await this.imageService.getImageFromFileSystem(fileName)
-
-    return new Image({ ...imageMetadata.serialize(), base64: imageBase64 }).serialize()
   }
 }

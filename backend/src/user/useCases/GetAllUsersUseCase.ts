@@ -1,21 +1,28 @@
-import { InsertUserQueryDTO, UpdateUserQueryDTO, UseCaseInterface, UseCaseOptionsInterface } from '@hatsuportal/application'
-import { ApiError, User, UserDTO, UserRepositoryInterface } from '@hatsuportal/domain'
+import {
+  ApplicationError,
+  AuthorizationError,
+  IGetAllUsersUseCase,
+  IGetAllUsersUseCaseOptions,
+  IUserApplicationMapper
+} from '@hatsuportal/application'
+import { UserId, IUserRepository } from '@hatsuportal/domain'
 
-export interface GetAllUsersUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-}
+export class GetAllUsersUseCase implements IGetAllUsersUseCase {
+  constructor(private readonly userRepository: IUserRepository, private readonly userMapper: IUserApplicationMapper) {}
 
-export type GetAllUsersUseCaseInterface = UseCaseInterface<GetAllUsersUseCaseOptions, UserDTO[]>
+  async execute({ loggedInUserId, allUsers }: IGetAllUsersUseCaseOptions): Promise<void> {
+    try {
+      const loggedInUser = await this.userRepository.findById(new UserId(loggedInUserId))
+      if (!loggedInUser?.isAdmin()) throw new AuthorizationError('You are not authorized to see all users.')
 
-export class GetAllUsersUseCase implements GetAllUsersUseCaseInterface {
-  constructor(private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
-
-  async execute({ user }: GetAllUsersUseCaseOptions): Promise<UserDTO[]> {
-    if (!user.isAdmin()) {
-      throw new ApiError(403, 'Forbidden', `Access denied for roles '${user.roles}': Only admin users can retrieve the list of all users.`)
+      const users = await this.userRepository.getAll()
+      allUsers(users.map((user) => this.userMapper.toDTO(user)))
+    } catch (error) {
+      if (!(error instanceof ApplicationError)) {
+        if (error instanceof Error) throw new ApplicationError(error.stack || error.message)
+        throw new ApplicationError(String(error))
+      }
+      throw error
     }
-
-    const users = await this.userRepository.getAll()
-    return users.map((user) => user.serialize())
   }
 }

@@ -7,7 +7,7 @@ const port = process.env.PORT || 80
 if (process.env.NODE_ENV !== 'production') {
   console.log(`Setting up swagger documentation to http://localhost:${port}/docs`)
   // SwaggerUI
-  const swaggerDocument = require('../swagger.json')
+  const swaggerDocument = require('../build/swagger.json')
   app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocument))
 }
 

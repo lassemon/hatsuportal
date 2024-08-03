@@ -23,4 +23,4 @@
 
 - run all unit tests from root by `npm run test`
 - run a single unit test from root by `npm run test -- --testNamePattern <pattern>`
-- e.g. `npm run test -- --testNamePattern can create user`
+- e.g. `npm run test -- --testNamePattern "can create user"`

@@ -7,7 +7,7 @@ export class Connection {
     if (this.knexConnector === null) {
       this.knexConnector = knex({
         client: 'mysql',
-        debug: process.env.LOG_LEVEL === 'DEBUG',
+        debug: process.env.LOG_LEVEL === 'DEBU',
         connection: {
           host: process.env.DATABASE_HOST || 'localhost',
           user: process.env.DATABASE_USER || 'development',

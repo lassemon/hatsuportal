@@ -1,63 +1,77 @@
 import {
-  CreateImageRequestDTO,
-  ImageMapperInterface,
-  InsertImageMetadataQueryDTO,
-  UpdateImageMetadataQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  ApplicationError,
+  AuthenticationError,
+  ForbiddenError,
+  ICreateImageUseCase,
+  ICreateImageUseCaseOptions,
+  IImageApplicationMapper,
+  IImageMetadataApplicationMapper
 } from '@hatsuportal/application'
-import { ImageServiceInterface } from '@hatsuportal/application'
+import { IImageService } from '@hatsuportal/application'
+import { unixtimeNow, uuid } from '@hatsuportal/common'
 
-import { ApiError, ImageDTO, ImageMetadata, ImageMetadataRepositoryInterface, User } from '@hatsuportal/domain'
+import { IImageMetadataRepository, IUserRepository, PostId, Image, Base64Image, UserId } from '@hatsuportal/domain'
 
-export interface CreateImageUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-  createImageRequest: CreateImageRequestDTO
-}
-
-export type CreateImageUseCaseInterface = UseCaseInterface<CreateImageUseCaseOptions, ImageDTO>
-
-export class CreateImageUseCase implements CreateImageUseCaseInterface {
+export class CreateImageUseCase implements ICreateImageUseCase {
   constructor(
-    private readonly imageService: ImageServiceInterface,
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly imageMapper: ImageMapperInterface
+    private readonly imageService: IImageService,
+    private readonly userRepository: IUserRepository,
+    private readonly imageMetadataRepository: IImageMetadataRepository,
+    private readonly imageMapper: IImageApplicationMapper,
+    private readonly imageMetadataMapper: IImageMetadataApplicationMapper
   ) {}
 
-  async execute({ createImageRequest, user }: CreateImageUseCaseOptions): Promise<ImageDTO> {
-    const imageMetadata = this.imageMapper.createRequestToImageMetadata(createImageRequest, user)
+  async execute({ createImageInput, imageCreated }: ICreateImageUseCaseOptions): Promise<void> {
+    try {
+      const { loggedInUserId, createImageData } = createImageInput
+      const loggedInUser = await this.userRepository.findById(new UserId(loggedInUserId))
+      if (!loggedInUser || !loggedInUser.isAdmin()) throw new AuthenticationError('Must be logged in to create an story.')
 
-    await this.ensureUniqueImageId(imageMetadata.id)
+      const image = new Image({
+        id: uuid(),
+        visibility: createImageData.visibility,
+        fileName: createImageData.fileName,
+        mimeType: createImageData.mimeType,
+        size: createImageData.size,
+        ownerId: createImageData.ownerId ?? null,
+        ownerType: createImageData.ownerType,
+        base64: createImageData.base64,
+        createdBy: loggedInUser.id.value,
+        createdByUserName: loggedInUser.name.value,
+        createdAt: unixtimeNow(),
+        updatedAt: null
+      })
+      await this.ensureUniqueId(image.id)
 
-    const resizedBuffer = await this.getResizedImageBuffer(createImageRequest)
-    imageMetadata.mimeType = await this.imageService.validateMimeType(resizedBuffer, imageMetadata)
-    imageMetadata.fileName = this.imageService.parseImageFilename(imageMetadata)
+      const resizedBuffer = await this.getResizedImageBuffer(image.base64)
+      image.mimeType = await this.imageService.validateMimeType(resizedBuffer, image.fileName)
 
-    this.imageService.writeImageToFileSystem(resizedBuffer, imageMetadata)
+      this.imageService.writeImageToFileSystem(resizedBuffer, image.storageFileName)
 
-    const newImageMetadata = await this.insertImageMetadata(imageMetadata)
+      const newImageMetadata = await this.imageMetadataRepository.insert(image)
 
-    const image = this.imageMapper.metadataToImage(
-      newImageMetadata.serialize(),
-      this.imageService.convertBufferToBase64Image(resizedBuffer, imageMetadata)
-    )
-    return image.serialize()
-  }
+      image.base64 = this.imageService.convertBufferToBase64Image(resizedBuffer, image.mimeType)
 
-  private async ensureUniqueImageId(id: string): Promise<void> {
-    const previousImage = await this.imageMetadataRepository.findById(id)
-    if (previousImage) {
-      throw new ApiError(403, 'AlreadyExists', `Cannot create image with id ${id} because it already exists.`)
+      image.update(this.imageMetadataMapper.toDTO(newImageMetadata))
+      imageCreated(this.imageMapper.toDTO(image))
+    } catch (error) {
+      if (!(error instanceof ApplicationError)) {
+        if (error instanceof Error) throw new ApplicationError(error.stack || error.message)
+        throw new ApplicationError(String(error))
+      }
+      throw error
     }
   }
 
-  private async getResizedImageBuffer(createImageRequest: CreateImageRequestDTO) {
-    const imageBuffer = this.imageService.convertBase64ImageToBuffer(createImageRequest.base64)
-    return await this.imageService.resizeImageBuffer(imageBuffer)
+  private async ensureUniqueId(id: PostId): Promise<void> {
+    const previousImage = await this.imageMetadataRepository.findById(id)
+    if (previousImage) {
+      throw new ForbiddenError(`Cannot create image with id ${id} because it already exists.`)
+    }
   }
 
-  private async insertImageMetadata(imageMetadata: ImageMetadata): Promise<ImageMetadata> {
-    const insertQuery = this.imageMapper.toInsertQuery(imageMetadata.serialize())
-    return this.imageMetadataRepository.insert(insertQuery)
+  private async getResizedImageBuffer(base64: Base64Image) {
+    const imageBuffer = this.imageService.convertBase64ImageToBuffer(base64)
+    return await this.imageService.resizeImageBuffer(imageBuffer)
   }
 }

@@ -1,83 +1,112 @@
-import { Body, Delete, Get, Middlewares, Post, Put, Request, Response, Route, SuccessResponse, Tags } from 'tsoa'
-import { ApiError } from '@hatsuportal/domain'
-import { CreateImageUseCase } from './useCases/CreateImageUseCase'
-import { TsoaRequest } from '../common/entities/TsoaRequest'
-import Authentication from '../auth/Authentication'
+import { Body, Delete, Get, Middlewares, Post, Put, Request, Res, Response, Route, SuccessResponse, Tags, TsoaResponse } from 'tsoa'
+import Authentication from '/auth/Authentication'
 import passport from 'passport'
-import { ImageMapper, ItemMapper } from '@hatsuportal/infrastructure'
-import { RemoveImageFromItemUseCase } from './useCases/RemoveImageFromItemUseCase'
-import { UpdateImageUseCase } from './useCases/UpdateImageUseCase'
-import { CreateImageRequestDTO, ImageResponseDTO, ItemResponseDTO, UpdateImageRequestDTO } from '@hatsuportal/application'
-import { ImageProcessingService } from './services/ImageProcessingService'
-import { ImageStorageService } from './services/ImageStorageService'
-import { ImageService } from './services/ImageService'
-import { FindImageUseCase } from './useCases/FindImageUseCase'
-import ItemRepository from '/item/ItemRepository'
-import ImageMetadataRepository from './ImageMetadataRepository'
 import { RootController } from '/common/RootController'
+import {
+  CreateImageRequest,
+  ErrorPresentationMapper,
+  ErrorResponse,
+  ImagePresentationMapper,
+  ImageResponse,
+  InvalidRequestError,
+  StoryPresentationMapper,
+  StoryResponse,
+  UpdateImageRequest
+} from '@hatsuportal/presentation'
+import { ImageDTO, StoryDTO } from '@hatsuportal/application'
+import { TsoaRequest } from '/common/TsoaRequest'
 
 const authentication = new Authentication(passport)
 
-const imageProcessingService = new ImageProcessingService()
-const imageStorageService = new ImageStorageService()
-const imageService = new ImageService(imageProcessingService, imageStorageService)
-const imageMapper = new ImageMapper()
-const itemMapper = new ItemMapper()
-const imageMetadataRepository = new ImageMetadataRepository(imageMapper)
-const itemRepository = new ItemRepository(itemMapper)
-const createImageUseCase = new CreateImageUseCase(imageService, imageMetadataRepository, imageMapper)
-const updateImageUseCase = new UpdateImageUseCase(imageService, imageMetadataRepository, imageMapper)
-const removeImageFromItemUseCase = new RemoveImageFromItemUseCase(itemRepository, imageStorageService, imageMetadataRepository, itemMapper)
+const imagePresentationMapper = new ImagePresentationMapper()
+const storyPresentationMapper = new StoryPresentationMapper()
+const errorPresentationMapper = new ErrorPresentationMapper()
 
-const findImageUseCase = new FindImageUseCase(imageMetadataRepository, imageService)
+/**
+ * FIXME, TSOA does not allow union types in TsoaResponse first generics type, nor does it allow to import the ServerError from another file,
+ * see https://github.com/lukeautry/tsoa/blob/c50fc6d4322b71f0746d6ff67000b6563593bbdb/docs/ExternalInterfacesExplanation.MD for possible details on import error.
+ * Thus we need to redeclare this type at the top of each Controller.
+ */
+type ServerError = TsoaResponse<400 | 401 | 403 | 422 | 404 | 500 | 501, ErrorResponse>
 
 @Route('/')
 export class ImageController extends RootController {
   @Tags('Image')
   @Response(404, 'NotFound')
   @Response(422, 'UnprocessableContent')
+  @Response(500, 'InternalServerError')
+  @SuccessResponse(200, 'OK')
   @Get('image/{imageId}')
-  public async get(imageId?: string): Promise<ImageResponseDTO | null> {
-    if (!imageId) {
-      throw new ApiError(422, 'Missing required path parameter "imageId"')
+  public async get(@Res() getResponse: TsoaResponse<200, ImageResponse>, @Res() errorResponse: ServerError, imageId?: string) {
+    try {
+      if (!imageId) {
+        throw new InvalidRequestError('Missing required path parameter "imageId"')
+      }
+      const findImageUseCase = this.useCaseFactory.createFindImageUseCase()
+      await findImageUseCase.execute({
+        imageId: imageId,
+        imageFound: (image: ImageDTO) => {
+          getResponse(200, imagePresentationMapper.toResponse(image))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
     }
-
-    const image = await findImageUseCase.execute({
-      imageId
-    })
-
-    return imageMapper.toResponse(image)
   }
 
   @Tags('Image')
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
-  @SuccessResponse('201', 'Created')
+  @SuccessResponse(201, 'Created')
   @Post('image')
-  public async create(@Request() request: TsoaRequest, @Body() createImageRequest: CreateImageRequestDTO): Promise<ImageResponseDTO> {
-    this.validateAuthentication(request)
-
-    const image = await createImageUseCase.execute({
-      user: request.user,
-      createImageRequest
-    })
-
-    return imageMapper.toResponse(image)
+  public async create(
+    @Request() request: TsoaRequest,
+    @Body() createImageRequest: CreateImageRequest,
+    @Res() createResponse: TsoaResponse<201, ImageResponse>,
+    @Res() errorResponse: ServerError
+  ) {
+    try {
+      this.validateAuthentication(request)
+      const createImageInput = imagePresentationMapper.toCreateImageInputDTO(createImageRequest, request.user.id.value)
+      const createImageUseCase = this.useCaseFactory.createCreateImageUseCase()
+      await createImageUseCase.execute({
+        createImageInput,
+        imageCreated: (createdImage: ImageDTO) => {
+          createResponse(201, imagePresentationMapper.toResponse(createdImage))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 
   @Tags('Image')
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
-  @SuccessResponse('201', 'Created')
+  @SuccessResponse(201, 'Created')
   @Put('image')
-  public async update(@Request() request: TsoaRequest, @Body() updateImageRequest: UpdateImageRequestDTO): Promise<ImageResponseDTO> {
-    this.validateAuthentication(request)
-
-    const image = await updateImageUseCase.execute({
-      updateImageRequest
-    })
-
-    return imageMapper.toResponse(image)
+  public async update(
+    @Request() request: TsoaRequest,
+    @Body() updateImageRequest: UpdateImageRequest,
+    @Res() updateResponse: TsoaResponse<200, ImageResponse>,
+    @Res() errorResponse: ServerError
+  ): Promise<void> {
+    try {
+      this.validateAuthentication(request)
+      const updateImageInput = imagePresentationMapper.toUpdateImageInputDTO(updateImageRequest, request.user.id.value)
+      const updateImageUseCase = this.useCaseFactory.createUpdateImageUseCase()
+      await updateImageUseCase.execute({
+        updateImageInput,
+        imageUpdated: (updatedImage: ImageDTO) => {
+          updateResponse(200, imagePresentationMapper.toResponse(updatedImage))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 
   @Tags('Image')
@@ -85,18 +114,28 @@ export class ImageController extends RootController {
   @Response(401, 'Unauthorized')
   @Response(404, 'NotFound')
   @Response(422, 'UnprocessableContent')
-  @Delete('image/{itemId}')
-  public async delete(@Request() request: TsoaRequest, itemId?: string): Promise<ItemResponseDTO> {
-    this.validateAuthentication(request)
-    if (!itemId) {
-      throw new ApiError(422, 'Missing required path parameter "itemId"')
+  @SuccessResponse(200, 'OK')
+  @Delete('image/{storyId}')
+  public async delete(
+    @Request() request: TsoaRequest,
+    storyId: string,
+    @Res() deleteResponse: TsoaResponse<200, StoryResponse>,
+    @Res() errorResponse: ServerError
+  ): Promise<void> {
+    try {
+      this.validateAuthentication(request)
+      const removeImageFromStoryInput = imagePresentationMapper.toRemoveImageFromStoryInputDTO(storyId, request.user.id.value)
+      const removeImageFromStoryUseCase = this.useCaseFactory.createRemoveImageFromStoryUseCase()
+      await removeImageFromStoryUseCase.execute({
+        removeImageFromStoryInput,
+        imageRemoved: (storyWithoutImage: StoryDTO) => {
+          // TODO, returning story here makes only sense when there is 1to1 relatioship with story<->image, but prepare to change
+          deleteResponse(200, storyPresentationMapper.toResponse(storyWithoutImage))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
     }
-
-    const item = await removeImageFromItemUseCase.execute({
-      itemId,
-      user: request.user
-    })
-
-    return itemMapper.toResponse(item)
   }
 }

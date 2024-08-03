@@ -1,20 +1,15 @@
-import { ApiError, ImageMetadataDTO } from '@hatsuportal/domain'
-import { ImageProcessingServiceInterface, ImageServiceInterface, ImageStorageServiceInterface } from '@hatsuportal/application'
-import mime from 'mime-types'
-import path from 'path'
-import { readFile } from 'fs/promises'
+import { Base64Image, FileName, MimeType } from '@hatsuportal/domain'
+import { IImageProcessingService, IImageService, IImageStorageService, InvalidInputError } from '@hatsuportal/application'
 
-const imagesBasePath = process.env.IMAGES_BASE_PATH || './images'
-
-export class ImageService implements ImageServiceInterface {
+export class ImageService implements IImageService {
   constructor(
-    private readonly imageProcessingService: ImageProcessingServiceInterface,
-    private readonly imageStorageService: ImageStorageServiceInterface
+    private readonly imageProcessingService: IImageProcessingService,
+    private readonly imageStorageService: IImageStorageService
   ) {}
 
-  convertBase64ImageToBuffer(base64ImageData: string) {
+  convertBase64ImageToBuffer(base64Image: Base64Image) {
     // Extract content type and base64 payload from the base64 image string
-    const matches = base64ImageData.match(/^data:(.+);base64,(.*)$/)
+    const matches = base64Image.value.match(/^data:(.+);base64,(.*)$/)
     if (!matches || matches.length !== 3) {
       throw new Error('Invalid base64 image data')
     }
@@ -23,23 +18,18 @@ export class ImageService implements ImageServiceInterface {
     return Buffer.from(base64Payload, 'base64')
   }
 
-  convertBufferToBase64Image(imageBuffer: Buffer, metadata: ImageMetadataDTO) {
-    return `data:${metadata.mimeType};base64,${imageBuffer.toString('base64')}`
-  }
-
-  parseImageFilename(metadata: ImageMetadataDTO) {
-    const fileExtension = mime.extension(metadata.mimeType)
-    return `${metadata.ownerType}_${metadata.createdBy}_${metadata.fileName}.${fileExtension}`
+  convertBufferToBase64Image(imageBuffer: Buffer, mimeType: MimeType) {
+    return `data:${mimeType};base64,${imageBuffer.toString('base64')}`
   }
 
   async resizeImageBuffer(imageBuffer: Buffer): Promise<Buffer> {
     return await this.imageProcessingService.resizeImage(imageBuffer, { width: 320 })
   }
 
-  async validateMimeType(imageBuffer: Buffer, metadata: ImageMetadataDTO): Promise<string> {
+  async validateMimeType(imageBuffer: Buffer, fileName: FileName): Promise<string> {
     const mimeType = await this.imageProcessingService.getBufferMimeType(imageBuffer)
     if (!mimeType) {
-      throw new ApiError(422, 'UnprocessableContent', `Could not parse MimeType from base64 encoded image of ${metadata.fileName}`)
+      throw new InvalidInputError(`Could not parse MimeType from base64 encoded image of ${fileName}`)
     }
     return mimeType
   }
@@ -48,18 +38,15 @@ export class ImageService implements ImageServiceInterface {
     return this.imageProcessingService.getBufferMimeType(buffer)
   }
 
-  async writeImageToFileSystem(imageBuffer: Buffer, metadata: ImageMetadataDTO): Promise<void> {
-    return await this.imageStorageService.writeImageBufferToFile(imageBuffer, metadata.fileName)
+  async writeImageToFileSystem(imageBuffer: Buffer, fileName: FileName): Promise<void> {
+    return await this.imageStorageService.writeImageBufferToFile(imageBuffer, fileName)
   }
 
-  async getImageFromFileSystem(fileName: string): Promise<string> {
-    const imagePath = path.resolve(imagesBasePath, fileName)
-    const imageBuffer = await readFile(imagePath)
-    const imageBase64 = imageBuffer.toString('base64')
-    return imageBase64
+  async getImageFromFileSystem(fileName: FileName): Promise<string> {
+    return await this.imageStorageService.getImageFromFileSystem(fileName)
   }
 
-  async deleteImageFromFileSystem(fileName: string): Promise<void> {
+  async deleteImageFromFileSystem(fileName: FileName): Promise<void> {
     return await this.imageStorageService.deleteImageFromFileSystem(fileName)
   }
 }

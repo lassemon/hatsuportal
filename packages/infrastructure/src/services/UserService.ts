@@ -1,28 +1,23 @@
-import { Encryption, InsertUserQueryDTO, UpdateUserQueryDTO, UserServiceInterface } from '@hatsuportal/application'
-import { ApiError, UserRepositoryInterface } from '@hatsuportal/domain'
+import { Encryption, IUserService } from '@hatsuportal/application'
+import { IUserRepository, Password, UserId } from '@hatsuportal/domain'
+import { ValidationError } from '../errors/ValidationError'
 
-export class UserService implements UserServiceInterface {
-  constructor(private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
+export class UserService implements IUserService {
+  constructor(private readonly userRepository: IUserRepository) {}
 
   async validatePasswordChange(userId: string, newPassword: string, oldPassword?: string): Promise<boolean> {
     if (!oldPassword) {
-      throw new ApiError(401, 'Unauthorized')
+      throw new ValidationError('Unauthorized')
     }
-    const userWithPassword = await this.userRepository.findWithPasswordById(userId)
+    const userWithPassword = await this.userRepository.getUserCredentialsByUserId(new UserId(userId))
     if (!userWithPassword) {
-      throw new ApiError(401, 'Unauthorized')
+      throw new ValidationError('Unauthorized')
     }
 
-    if (!(await Encryption.compare(oldPassword, userWithPassword.password))) {
-      throw new ApiError(401, 'Unauthorized')
+    if (!(await Encryption.compare(oldPassword, userWithPassword.passwordHash))) {
+      throw new ValidationError('Unauthorized')
     }
 
-    return this.validateNewPassword(newPassword)
-  }
-
-  validateNewPassword(newPassword: string) {
-    // TODO new password length and complexity rules?
-    // duplicate these rules to frontend input validation when implementing
-    return true
+    return Password.canCreate(newPassword)
   }
 }

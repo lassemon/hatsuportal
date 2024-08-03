@@ -22,7 +22,7 @@ export default class Authorization {
     const authToken = jwt.sign(
       {
         exp: expires,
-        userId: user.id
+        userId: user.id.value
       },
       jwtSecret,
       {
@@ -46,7 +46,7 @@ export default class Authorization {
     const refreshToken = jwt.sign(
       {
         exp: expires,
-        userId: user.id
+        userId: user.id.value
       },
       refreshTokenSecret,
       {

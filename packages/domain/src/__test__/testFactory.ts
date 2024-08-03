@@ -1,44 +1,15 @@
-import { unixtimeNow } from '@hatsuportal/common'
-import { Visibility } from '../enums/Visibility'
-import { UserRole } from '../enums/UserRole'
-import { EntityType } from '../enums/EntityType'
+import { PostTypeEnum, unixtimeNow, UserRoleEnum, VisibilityEnum } from '@hatsuportal/common'
 
-const createdAt = unixtimeNow()
+const createdAt = unixtimeNow() - 3000
 const updatedAt = createdAt + 1500
 
-export const entity = () => {
+export const userDTO = () => {
   return {
     ...{
-      id: 'testId',
-      visibility: Visibility.Public,
-      createdBy: '0',
-      createdByUserName: 'testUserName',
-      createdAt,
-      updatedAt
-    }
-  }
-}
-
-export const serializedEntity = () => {
-  return {
-    ...{
-      id: entity().id,
-      visibility: entity().visibility,
-      createdBy: entity().createdBy,
-      createdByUserName: entity().createdByUserName,
-      createdAt: entity().createdAt,
-      updatedAt: entity().updatedAt
-    }
-  }
-}
-
-export const user = () => {
-  return {
-    ...{
-      id: 'userId',
+      id: 'test1b19-user-4792-a2f0-f95ccab82d92',
       name: 'username',
-      email: 'email',
-      roles: [UserRole.Admin],
+      email: 'email@test.com',
+      roles: [UserRoleEnum.Admin],
       active: true,
       createdAt,
       updatedAt
@@ -46,60 +17,45 @@ export const user = () => {
   }
 }
 
-export const serializedUser = () => {
+export const storyDTO = () => {
   return {
     ...{
-      id: user().id,
-      name: user().name,
-      email: user().email,
-      roles: user().roles,
-      active: user().active,
-      createdAt: user().createdAt,
-      updatedAt: user().updatedAt
+      id: 'test1b19-story-4792-a2f0-f95ccab82d92',
+      visibility: VisibilityEnum.Public,
+      createdBy: userDTO().id,
+      createdByUserName: 'testUserName',
+      createdAt,
+      updatedAt,
+      imageId: imageDTO().id,
+      name: 'test story',
+      description: 'A test story.'
     }
   }
 }
 
-export const imageMetadata = () => {
+export const imageMetadataDTO = () => {
   return {
     ...{
-      ...entity(),
+      id: 'test1b19-enti-ty92-a2f0-f95cc2metadata',
+      visibility: VisibilityEnum.Public,
       fileName: 'filename.png',
       mimeType: 'image/png',
       size: 1537565,
-      ownerId: '123',
-      ownerType: EntityType.Item
+      ownerId: 'test1b19-81db-4792-a2f0-f95ccab82d92',
+      ownerType: PostTypeEnum.Story,
+      createdBy: 'test1b19-81db-4792-a2f0-f95ccab82d92',
+      createdByUserName: 'testUserName',
+      createdAt,
+      updatedAt
     }
   }
 }
 
-export const serializedImageMetadata = () => {
+export const imageDTO = () => {
   return {
     ...{
-      ...serializedEntity(),
-      fileName: imageMetadata().fileName,
-      mimeType: imageMetadata().mimeType,
-      size: imageMetadata().size,
-      ownerId: imageMetadata().ownerId,
-      ownerType: imageMetadata().ownerType
-    }
-  }
-}
-
-export const image = () => {
-  return {
-    ...{
-      ...imageMetadata(),
+      ...imageMetadataDTO(),
       base64: 'data:image/png;base64,iVBORw0KGgo'
-    }
-  }
-}
-
-export const serializedImage = () => {
-  return {
-    ...{
-      ...serializedImageMetadata(),
-      base64: image().base64
     }
   }
 }

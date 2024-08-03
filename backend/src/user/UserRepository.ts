@@ -1,113 +1,110 @@
-import { ApiError, UnknownError, User, UserDatabaseEntity, UserRepositoryInterface } from '@hatsuportal/domain'
-import { Logger, unixtimeNow } from '@hatsuportal/common'
-import { DateTime } from 'luxon'
-import { UserMapper } from '@hatsuportal/infrastructure'
-import { InsertUserQueryDTO, UpdateUserQueryDTO } from '@hatsuportal/application'
+import { User, IUserRepository, UserCredentials, Password, UserId, UserName } from '@hatsuportal/domain'
+import { Logger } from '@hatsuportal/common'
+import { IUserInfrastructureMapper, UserDatabaseSchema, UserInfrastructureMapper } from '@hatsuportal/infrastructure'
 import connection from '../common/database/connection'
+import { DataPersistenceError, NotFoundError, NotImplementedError } from '@hatsuportal/application'
 
 const logger = new Logger('UserRepository')
 
-class UserRepository implements UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO> {
-  private userMapper: UserMapper
+class UserRepository implements IUserRepository {
+  private userMapper: IUserInfrastructureMapper
 
   constructor() {
-    this.userMapper = new UserMapper()
+    this.userMapper = new UserInfrastructureMapper()
   }
 
   async getAll(): Promise<User[]> {
-    const userRecords = await connection.select('*').from<UserDatabaseEntity>('users')
-    return userRecords.map(this.userMapper.toUser)
+    const userRecords = await connection.select('*').from<UserDatabaseSchema>('users')
+    return userRecords.map((record) => new User(this.userMapper.toDTO(record)))
   }
 
-  async findById(userId: string): Promise<User | null> {
-    const userRecord = await connection.select('*').from<UserDatabaseEntity>('users').where('id', userId).first()
+  async findById(userId: UserId): Promise<User | null> {
+    const userRecord = await connection.select('*').from<UserDatabaseSchema>('users').where('id', userId.value).first()
     if (!userRecord) {
       return null
     }
-    return this.userMapper.toUser(userRecord)
+    return new User(this.userMapper.toDTO(userRecord))
   }
 
-  async findWithPasswordById(userId: string): Promise<UserDatabaseEntity | null> {
-    const userRecordWithPassword = await connection.select('*').from<UserDatabaseEntity>('users').where('id', userId).first()
+  async getUserCredentialsByUserId(userId: UserId): Promise<UserCredentials | null> {
+    const userRecordWithPassword = await connection.select('*').from<UserDatabaseSchema>('users').where('id', userId.value).first()
     if (!userRecordWithPassword) {
       return null
     }
     return {
-      ...userRecordWithPassword,
-      active: userRecordWithPassword.active,
-      roles: JSON.parse(userRecordWithPassword.roles)
+      userId: userRecordWithPassword.id,
+      passwordHash: userRecordWithPassword.password
     }
   }
 
-  async findWithPasswordByName(username: string): Promise<UserDatabaseEntity | null> {
-    const userRecordWithPassword = await connection.select('*').from<UserDatabaseEntity>('users').where('name', username).first()
+  async getUserCredentialsByUsername(username: UserName): Promise<UserCredentials | null> {
+    const userRecordWithPassword = await connection.select('*').from<UserDatabaseSchema>('users').where('name', username.value).first()
     if (!userRecordWithPassword) {
       return null
     }
     return {
-      ...userRecordWithPassword,
-      active: userRecordWithPassword.active,
-      roles: userRecordWithPassword.roles
+      userId: userRecordWithPassword.id,
+      passwordHash: userRecordWithPassword.password
     }
   }
 
-  async findByName(username: string): Promise<User | null> {
-    const userRecord = await connection.select('*').from<UserDatabaseEntity>('users').where('name', username).first()
+  async findByName(username: UserName): Promise<User | null> {
+    const userRecord = await connection.select('*').from<UserDatabaseSchema>('users').where('name', username.value).first()
     if (!userRecord) {
       return null
     }
-    return this.userMapper.toUser(userRecord)
+    return new User(this.userMapper.toDTO(userRecord))
   }
 
   async count(): Promise<number> {
-    throw new ApiError(501, 'NotImplemented')
+    throw new NotImplementedError('NotImplemented')
   }
 
-  async insert(insertQuery: InsertUserQueryDTO): Promise<User> {
-    const updatedAt = DateTime.now().toUnixInteger()
-    const userToInsert: UserDatabaseEntity = {
-      ...insertQuery,
-      roles: JSON.stringify(insertQuery.roles || []),
-      createdAt: updatedAt,
-      updatedAt: updatedAt
-    }
+  async insert(user: User, password: Password): Promise<User> {
+    const userToInsert = await this.userMapper.toInsertQuery(user, password)
     try {
-      await connection<any, UserDatabaseEntity>('users').insert(userToInsert) // mariadb does not return inserted object
+      await connection<any, UserDatabaseSchema>('users').insert(userToInsert) // mariadb does not return inserted object
     } catch (error) {
-      logger.error((error as any)?.message)
-      throw new UnknownError(500, 'UnknownError')
+      if (error instanceof Error) {
+        logger.error((error as any)?.message)
+        throw new DataPersistenceError(error.stack)
+      } else {
+        logger.error(error)
+        throw new DataPersistenceError(`UnknownError`)
+      }
     }
 
-    const createdUserRecord = await this.findById(userToInsert.id)
+    const createdUserRecord = await this.findById(new UserId(userToInsert.id))
     if (!createdUserRecord) {
-      throw new ApiError(404, 'NotFound', 'Just created user could not be retrieved')
+      throw new NotFoundError('Just created user could not be retrieved')
     }
 
     return createdUserRecord
   }
 
-  async update(user: UpdateUserQueryDTO): Promise<User> {
-    const updatedAt = unixtimeNow()
-    const userToInsert = {
-      ...user,
-      updatedAt: updatedAt
-    }
+  async update(user: User, password?: Password): Promise<User> {
+    const userToUpdate = await this.userMapper.toUpdateQuery(user, password)
     try {
-      await connection<any, UserDatabaseEntity>('users').where('id', userToInsert.id).update(userToInsert) // mariadb does not return inserted object
+      await connection<any, UserDatabaseSchema>('users').where('id', userToUpdate.id).update(userToUpdate) // mariadb does not return inserted object
     } catch (error) {
-      logger.error((error as any)?.message)
-      throw new UnknownError(500, 'UnknownError')
+      if (error instanceof Error) {
+        logger.error((error as any)?.message)
+        throw new DataPersistenceError(error.stack)
+      } else {
+        logger.error(error)
+        throw new DataPersistenceError(`UnknownError`)
+      }
     }
 
-    const updatedUserRecord = await this.findById(user.id)
+    const updatedUserRecord = await this.findById(new UserId(userToUpdate.id))
     if (!updatedUserRecord) {
-      throw new ApiError(404, 'NotFound', 'Just updated user could not be retrieved')
+      throw new NotFoundError('Just updated user could not be retrieved')
     }
     return updatedUserRecord
   }
 
-  async deactivate(userId: string): Promise<void> {
-    throw new ApiError(501, 'NotImplemented')
+  async deactivate(userId: UserId): Promise<void> {
+    throw new NotImplementedError('NotImplemented')
   }
 }
 

@@ -1,28 +1,28 @@
-import { Body, Delete, Get, Middlewares, Post, Put, Request, Response, Route, SuccessResponse, Tags } from 'tsoa'
+import { Body, Delete, Get, Middlewares, Post, Put, Request, Res, Response, Route, SuccessResponse, Tags, TsoaResponse } from 'tsoa'
 import Authentication from '../auth/Authentication'
 import passport from 'passport'
-import { TsoaRequest } from '../common/entities/TsoaRequest'
-import { UpdateUserUseCase } from './useCases/UpdateUserUseCase'
-import { UserMapper, UserService } from '@hatsuportal/infrastructure'
-import { CreateUserRequestDTO, UpdateUserRequestDTO, UserResponseDTO } from '@hatsuportal/application'
-import { CreateUserUseCase } from './useCases/CreateUserUseCase'
-import { GetAllUsersUseCase } from './useCases/GetAllUsersUseCase'
-import { FindUserUseCase } from './useCases/FindUserUseCase'
-import { DeactivateUserUseCase } from './useCases/DeadtivateUserUseCase'
-import UserRepository from './UserRepository'
-import { ApiError } from '@hatsuportal/domain'
 import { RootController } from '/common/RootController'
+import {
+  CreateUserRequest,
+  ErrorPresentationMapper,
+  ErrorResponse,
+  UpdateUserRequest,
+  UserPresentationMapper,
+  UserResponse
+} from '@hatsuportal/presentation'
+import { AuthorizationError, UserDTO } from '@hatsuportal/application'
+import { TsoaRequest } from '/common/TsoaRequest'
 
 const authentication = new Authentication(passport)
+const userPresentationMapper = new UserPresentationMapper()
+const errorPresentationMapper = new ErrorPresentationMapper()
 
-const userMapper = new UserMapper()
-const userRepository = new UserRepository()
-const userService = new UserService(userRepository)
-const createUserUseCase = new CreateUserUseCase(userRepository, userMapper)
-const updateUserUseCase = new UpdateUserUseCase(userMapper, userRepository, userService)
-const getAllUsersUseCase = new GetAllUsersUseCase(userRepository)
-const findUserUseCase = new FindUserUseCase(userRepository)
-const deactivateUserUseCase = new DeactivateUserUseCase(userRepository)
+/**
+ * FIXME, TSOA does not allow union types in TsoaResponse first generics type, nor does it allow to import the ServerError from another file,
+ * see https://github.com/lukeautry/tsoa/blob/c50fc6d4322b71f0746d6ff67000b6563593bbdb/docs/ExternalInterfacesExplanation.MD for possible details on import error.
+ * Thus we need to redeclare this type at the top of each Controller.
+ */
+type ServerError = TsoaResponse<400 | 401 | 403 | 422 | 404 | 500 | 501, ErrorResponse>
 
 @Route('/user')
 export class UserController extends RootController {
@@ -34,15 +34,26 @@ export class UserController extends RootController {
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
   @Response(403, 'Forbidden')
+  @SuccessResponse(200, 'OK')
   @Get()
-  public async getAll(@Request() request: TsoaRequest): Promise<UserResponseDTO[]> {
-    this.validateAuthentication(request)
-
-    const users = await getAllUsersUseCase.execute({
-      user: request.user
-    })
-
-    return users.map(userMapper.toResponse)
+  public async getAll(
+    @Request() request: TsoaRequest,
+    @Res() usersFoundResponse: TsoaResponse<200, UserResponse[]>,
+    @Res() errorResponse: ServerError
+  ) {
+    try {
+      this.validateAuthentication(request)
+      const getAllUsersUseCase = this.useCaseFactory.createGetAllUsersUseCase()
+      await getAllUsersUseCase.execute({
+        loggedInUserId: request.user.id.value,
+        allUsers: (users: UserDTO[]) => {
+          usersFoundResponse(200, users.map(userPresentationMapper.toResponse))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 
   @Tags('user')
@@ -50,67 +61,112 @@ export class UserController extends RootController {
   @Response(401, 'Unauthorized')
   @Response(404, 'NotFound')
   @Response(501, 'NotImplemented')
-  @SuccessResponse(200, 'Ok')
+  @SuccessResponse(200, 'OK')
   @Get('{id}')
-  public async get(@Request() request: TsoaRequest, id: string): Promise<UserResponseDTO> {
-    // TODO, implement gettin a user per id for admin users, currenly this api returns only
-    // the logged in user
-    this.validateAuthentication(request)
+  public async get(
+    @Request() request: TsoaRequest,
+    @Res() userFoundResponse: TsoaResponse<200, UserResponse>,
+    @Res() errorResponse: ServerError,
+    id: string
+  ) {
+    try {
+      this.validateAuthentication(request)
 
-    if (id) {
-      throw new ApiError(501, 'NotImplemented', 'Getting user by id is not yet implemented.')
+      // 'me' is a special case where we return the logged in user
+      const requestingOwnProfile = id === 'me' || id === request.user.id.value
+
+      if (!requestingOwnProfile && !request.user.isAdmin()) {
+        throw new AuthorizationError('You do not have permission to view this profile.')
+      }
+
+      const userId = id === 'me' ? request.user.id.value : id
+
+      const findUserInput = userPresentationMapper.toFindUserInputDTO(userId, request.user.id.value)
+      const findUserUseCase = this.useCaseFactory.createFindUserUseCase()
+      await findUserUseCase.execute({
+        findUserInput,
+        userFound: (foundUser: UserDTO) => {
+          userFoundResponse(200, userPresentationMapper.toResponse(foundUser))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
     }
-
-    const user = await findUserUseCase.execute({
-      user: request.user
-    })
-
-    return userMapper.toResponse(user)
   }
 
   @Tags('user')
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
-  @SuccessResponse(200, 'Ok')
+  @SuccessResponse(200, 'OK')
   @Post()
-  public async insert(@Request() request: TsoaRequest, @Body() createUserRequest: CreateUserRequestDTO): Promise<UserResponseDTO> {
-    this.validateAuthentication(request)
-
-    const createdUser = await createUserUseCase.execute({
-      createUserRequest
-    })
-
-    return userMapper.toResponse(createdUser)
+  public async insert(
+    @Request() request: TsoaRequest,
+    @Body() createUserRequest: CreateUserRequest,
+    @Res() updateResponse: TsoaResponse<200, UserResponse>,
+    @Res() errorResponse: ServerError
+  ) {
+    try {
+      this.validateAuthentication(request)
+      const createUserInput = userPresentationMapper.toCreateUserInputDTO(createUserRequest, request.user.id.value)
+      const createUserUseCase = this.useCaseFactory.createCreateUserUseCase()
+      await createUserUseCase.execute({
+        createUserInput,
+        foundUser: (createdUser: UserDTO) => {
+          updateResponse(200, userPresentationMapper.toResponse(createdUser))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 
   @Tags('user')
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
   @Response(404, 'NotFound')
-  @SuccessResponse(200, 'Ok')
+  @SuccessResponse(200, 'OK')
   @Put()
-  public async put(@Request() request: TsoaRequest, @Body() requestBody: UpdateUserRequestDTO): Promise<UserResponseDTO> {
-    this.validateAuthentication(request)
-
-    const updatedUser = await updateUserUseCase.execute({
-      userUpdateRequest: requestBody,
-      user: request.user
-    })
-
-    return userMapper.toResponse(updatedUser)
+  public async put(
+    @Request() request: TsoaRequest,
+    @Body() updateUserRequest: UpdateUserRequest,
+    @Res() updateResponse: TsoaResponse<200, UserResponse>,
+    @Res() errorResponse: ServerError
+  ) {
+    try {
+      this.validateAuthentication(request)
+      const updateUserInput = userPresentationMapper.toUpdateUserInputDTO(updateUserRequest, request.user.id.value)
+      const updateUserUseCase = this.useCaseFactory.createUpdateUserUseCase()
+      await updateUserUseCase.execute({
+        updateUserInput,
+        userUpdated: (updatedUser: UserDTO) => {
+          updateResponse(200, userPresentationMapper.toResponse(updatedUser))
+        }
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 
   @Tags('user')
   @Middlewares(authentication.authenticationMiddleware())
   @Response(401, 'Unauthorized')
   @Response(404, 'NotFound')
-  @SuccessResponse(200, 'Ok')
+  @SuccessResponse(200, 'OK')
   @Delete('{id}')
-  public async delete(@Request() request: TsoaRequest, id: string): Promise<void> {
-    this.validateAuthentication(request)
-    await deactivateUserUseCase.execute({
-      userId: id,
-      user: request.user
-    })
+  public async delete(@Request() request: TsoaRequest, @Res() errorResponse: ServerError, id: string): Promise<void> {
+    try {
+      this.validateAuthentication(request)
+      const deactivateUserInput = userPresentationMapper.toDeactivateUserInputDTO(id, request.user.id.value)
+      const deactivateUserUseCase = this.useCaseFactory.createDeactivateUserUseCase()
+      await deactivateUserUseCase.execute({
+        deactivateUserInput
+      })
+    } catch (error) {
+      const httpError = errorPresentationMapper.mapApplicationErrorToHttpError(error)
+      errorResponse(httpError.status, httpError)
+    }
   }
 }
