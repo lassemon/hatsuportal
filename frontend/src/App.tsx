@@ -1,86 +1,140 @@
 import { Box } from '@mui/material'
-import React, { useEffect } from 'react'
-import { Routes, Route, Outlet } from 'react-router-dom'
-import { ErrorBoundary } from 'react-error-boundary'
+import React, { useState } from 'react'
 
-import LoadingIndicator from 'components/LoadingIndicator'
-import { useOrientation } from 'utils/hooks'
+import { IAuthServiceContext, IEntityServiceContext, IUtilityServiceContext } from 'application/interfaces'
+import NavBar from 'ui/blocks/NavBar'
+import { StoryViewModelDTO } from 'ui/entities/story/model/StoryViewModel'
+import { AuthStateDTO } from 'ui/entities/user/state/authAtom'
+import { IStorageServiceContext } from 'application/interfaces/context/IStorageServiceContext'
+import { Breadcrumb } from 'ui/shared/state/breadcrumbAtom'
+import { HttpClientFactory } from 'infrastructure/services/HttpClientFactory'
+import { HttpClient } from 'infrastructure/http/clients/HttpClient'
+import { UserViewModelMapper } from 'infrastructure/http/mappers/UserViewModelMapper'
+import { AuthService } from 'infrastructure/services/auth/AuthService'
+import { LocalStorageService } from 'infrastructure/services/storage/LocalStorageService'
+import { ImageProcessingService } from 'infrastructure/services/imageProcessing/ImageProcessingService'
+import { DataServiceFactory } from 'infrastructure/services/DataServiceFactory'
+import { StoryViewModelMapper } from 'infrastructure/http/mappers/StoryViewModelMapper'
+import { ImageViewModelMapper } from 'infrastructure/http/mappers/ImageViewModelMapper'
+import { ProfileViewModelMapper } from 'infrastructure/http/mappers/ProfileViewModelMapper'
+import { PreferencesViewModelMapper } from 'infrastructure/http/mappers/PreferencesViewModelMapper'
+import { AuthServiceContext } from 'infrastructure/context/AuthServiceContext'
+import { EntityServiceContext } from 'infrastructure/context/EntityServiceContext'
+import { StorageServiceContext } from 'infrastructure/context/StorageServiceContext'
+import { UtilityServiceContext } from 'infrastructure/context/UtilityServiceContext'
+import Theme from 'ui/shared/ui/Theme'
+import PreferencesBootstrap from 'ui/app/bootstrap/PreferencesBootstrap'
+import { TagViewModelMapper } from 'infrastructure/http/mappers/TagViewModelMapper'
+import { PostViewModelMapper } from 'infrastructure/http/mappers/PostViewModelMapper'
+import { ThemeViewModelMapper } from 'infrastructure/http/mappers/ThemeViewModelMapper'
+import AppRoutes from 'ui/app/routes/AppRoutes'
+import { SessionExpiredNotifier } from 'infrastructure/services/auth/SessionExpiredNotifier'
+import SessionExpiredBootstrap from 'ui/app/bootstrap/SessionExpiredBootstrap'
+import LoadingSkeleton from 'ui/shared/ui/LoadingSkeleton/LoadingSkeleton'
+import { MainLayout } from 'ui/app/MainLayout'
 
-import ErrorDisplay from 'components/ErrorDisplay'
-import ErrorFallback from 'components/ErrorFallback'
+const sessionExpiredNotifier = new SessionExpiredNotifier()
+const httpClientFactory = new HttpClientFactory(new HttpClient(sessionExpiredNotifier))
 
-import NavBar from 'components/NavBar'
-import AccountPage from 'pages/AccountPage'
-import ProfilePage from 'pages/PorfilePage'
-import ItemsPage from 'pages/ItemsPage'
-import FrontPage from 'pages/FrontPage'
-import SuccessDisplay from 'components/SuccessDisplay'
-import MyItemsPage from 'pages/MyItemsPage'
-import Theme from 'components/Theme'
+const authService = new AuthService(httpClientFactory.createAuthHttpClient(), new UserViewModelMapper())
+const localStorageStoryService = new LocalStorageService<StoryViewModelDTO>(localStorage)
+const localStorageAuthService = new LocalStorageService<AuthStateDTO>(localStorage)
+const localStorageBreadcrumbService = new LocalStorageService<Breadcrumb[]>(localStorage)
+
+export const utilityServiceContext: IUtilityServiceContext = {
+  imageProcessingService: new ImageProcessingService()
+}
+
+const serviceFactory = new DataServiceFactory(
+  httpClientFactory,
+  new UserViewModelMapper(),
+  new StoryViewModelMapper(new ImageViewModelMapper()),
+  new ImageViewModelMapper(),
+  new ProfileViewModelMapper(),
+  new PreferencesViewModelMapper(new ThemeViewModelMapper()),
+  new ThemeViewModelMapper(),
+  localStorageStoryService,
+  new TagViewModelMapper(),
+  new PostViewModelMapper(new ImageViewModelMapper())
+)
+
+export const authServiceContext: IAuthServiceContext = {
+  authService: authService,
+  sessionExpiredNotifier: sessionExpiredNotifier
+}
+
+export const storageServiceContext: IStorageServiceContext = {
+  localStorageStoryService: localStorageStoryService,
+  localStorageAuthService: localStorageAuthService,
+  localStorageBreadcrumbService: localStorageBreadcrumbService
+}
+
+export const entityServiceContext: IEntityServiceContext = {
+  userService: serviceFactory.createUserService(),
+  postService: serviceFactory.createPostService(),
+  storyService: serviceFactory.createStoryService(),
+  profileService: serviceFactory.createProfileService(),
+  preferencesService: serviceFactory.createPreferencesService(),
+  themeService: serviceFactory.createThemeService(),
+  imageService: serviceFactory.createImageService(),
+  tagService: serviceFactory.createTagService()
+}
+
+const AppProviders: React.FC = ({ children }) => {
+  const [authContext] = useState<IAuthServiceContext>(authServiceContext)
+  const [entityContext] = useState<IEntityServiceContext>(entityServiceContext)
+  const [storageContext] = useState<IStorageServiceContext>(storageServiceContext)
+  const [utilityContext] = useState<IUtilityServiceContext>(utilityServiceContext)
+
+  return (
+    <AuthServiceContext.Provider value={authContext}>
+      <EntityServiceContext.Provider value={entityContext}>
+        <StorageServiceContext.Provider value={storageContext}>
+          <UtilityServiceContext.Provider value={utilityContext}>{children}</UtilityServiceContext.Provider>
+        </StorageServiceContext.Provider>
+      </EntityServiceContext.Provider>
+    </AuthServiceContext.Provider>
+  )
+}
+
+const Bootsrappers: React.FC = ({ children }) => {
+  return (
+    <React.Fragment>
+      <SessionExpiredBootstrap>
+        <PreferencesBootstrap>{children}</PreferencesBootstrap>
+      </SessionExpiredBootstrap>
+    </React.Fragment>
+  )
+}
 
 const App: React.FC = () => {
-  const orientation = useOrientation()
-  const isPortrait = orientation === 'portrait'
-
-  useEffect(() => {
-    console.log('window.location.pathname', window.location.pathname)
-  }, [window.location.pathname])
-
   const Main = () => {
     return (
-      <Theme>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: isPortrait ? 'column' : 'row',
-            minHeight: '100dvh',
-            height: '100%'
-          }}
-        >
-          <React.Suspense fallback={<LoadingIndicator />}>
-            <NavBar />
-          </React.Suspense>
-          <Box
-            component="main"
-            sx={{
-              overflowAnchor: 'none',
-              boxShadow: 'rgb(0, 0, 0) 2px 0px 7px -5px inset',
-              minHeight: '100%',
-              width: '100%',
-              flex: isPortrait ? '1 1 auto' : '',
-              display: isPortrait ? 'flex' : '',
-              flexDirection: 'column'
-            }}
-          >
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <React.Suspense fallback={<LoadingIndicator />}>
-                <Outlet />
-                <ErrorDisplay />
-                <SuccessDisplay />
+      <AppProviders>
+        <Bootsrappers>
+          <Theme>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '100dvh',
+                backgroundColor: (theme) => theme.palette.background.paper
+              }}
+            >
+              <React.Suspense fallback={<LoadingSkeleton skeletonProps={{ height: '4em' }} />}>
+                <NavBar />
               </React.Suspense>
-            </ErrorBoundary>
-          </Box>
-        </Box>
-      </Theme>
+              <React.Suspense fallback={<LoadingSkeleton skeletonProps={{ height: '20em' }} />}>
+                <MainLayout />
+              </React.Suspense>
+            </Box>
+          </Theme>
+        </Bootsrappers>
+      </AppProviders>
     )
   }
 
-  return (
-    <Routes>
-      <Route path="/" element={<Main />}>
-        <Route index element={<FrontPage />} />
-        <Route path="account" element={<AccountPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="items" element={<ItemsPage />} />
-        <Route path="myitems" element={<MyItemsPage />} />
-
-        {/* Using path="*"" means "match anything", so this route
-                    acts like a catch-all for URLs that we don't have explicit
-                    routes for. */}
-        <Route path="*" element={<FrontPage />} />
-      </Route>
-    </Routes>
-  )
+  return <AppRoutes RootContainer={Main} />
 }
 
 export default App

@@ -1,0 +1,6 @@
+export { DomainEvent } from './DomainEvent'
+export type { IDomainEvent } from './IDomainEvent'
+export type { IDomainEventHandler } from './IDomainEventHandler'
+export type { IDomainEventHandlerRegistry } from './IDomainEventHandlerRegistry'
+export type { IDomainEventDispatcher } from './IDomainEventDispatcher'
+export type { IDomainEventHolder } from './IDomainEventHolder'

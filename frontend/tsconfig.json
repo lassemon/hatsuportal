@@ -1,6 +1,11 @@
 {
+  "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": "./src",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": false,
     "target": "es6",
     "outDir": "build",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -11,14 +16,15 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["src"],
-  "references": [{ "path": "../packages/common" }, { "path": "../packages/domain" }, { "path": "../packages/application" }]
+  "include": ["src", "vitest.unit.mts"],
+  "references": [{ "path": "../packages/common" }, { "path": "../packages/contracts" }]
 }
