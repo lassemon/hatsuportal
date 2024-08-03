@@ -1,9 +1,9 @@
 {
   "files": [],
   "references": [
-    { "path": "packages/common" },
-    { "path": "packages/domain" },
-    { "path": "packages/application" },
-    { "path": "packages/infrastructure" }
+    { "path": "common" },
+    { "path": "boundedContext/userManagement" },
+    { "path": "boundedContext/postManagement" },
+    { "path": "packages/contracts" }
   ]
 }
