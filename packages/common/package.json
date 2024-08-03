@@ -5,7 +5,12 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests"
+    "build": "tsc -b tsconfig.json",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "clean": "npx --yes rimraf lib && npx --yes rimraf tsconfig.tsbuildinfo && npx --yes rimraf coverage",
+    "reset": "npm run clean && npx --yes rimraf node_modules"
   },
   "exports": {
     ".": {
@@ -14,18 +19,5 @@
     }
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@types/luxon": "^3.4.2",
-    "@types/node": "^20.12.13",
-    "@types/uuid": "^9.0.8",
-    "luxon": "^3.4.4",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "typescript": "^5.4.5",
-    "vite": "^5.3.5",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^2.0.4"
-  }
+  "license": "ISC"
 }

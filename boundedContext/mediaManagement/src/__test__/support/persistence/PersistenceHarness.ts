@@ -1,0 +1,17 @@
+import { PersistenceHarnessBase, wirePersistenceHarness } from '@hatsuportal/platform/test'
+
+export class PersistenceHarness extends PersistenceHarnessBase {
+  private static readonly ownedTableNames = ['domain_event_outbox', 'post_image_links', 'image_versions', 'images'] as const
+
+  static connect(databaseUrl?: string): PersistenceHarness {
+    const url = databaseUrl ?? process.env.TEST_DATABASE_URL ?? 'postgres://test:test@localhost:5433/hatsuportal_test'
+
+    const { dataAccessProvider, repositoryHelpers, transactionContext, domainEventService, unitOfWork } = wirePersistenceHarness(url)
+
+    return new PersistenceHarness(dataAccessProvider, repositoryHelpers, transactionContext, domainEventService, unitOfWork)
+  }
+
+  async clearOwnedTables(): Promise<void> {
+    await this.clearTables(PersistenceHarness.ownedTableNames)
+  }
+}

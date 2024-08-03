@@ -1,35 +1,49 @@
-FROM node:18.20.2
-
-LABEL maintainer="Lassemon"
-
-# Set the working directory
+# ---- Stage 1: Build ----
+FROM node:18-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy all package manifests first to leverage layer caching
 COPY package*.json ./
+COPY backend/package*.json backend/
+COPY frontend/package*.json frontend/
+COPY boundedContext/mediaManagement/package*.json boundedContext/mediaManagement/
+COPY boundedContext/postManagement/package*.json boundedContext/postManagement/
+COPY boundedContext/userManagement/package*.json boundedContext/userManagement/
+COPY boundedContext/shared-kernel/package*.json boundedContext/shared-kernel/
+COPY packages/bounded-context-service-contracts/package*.json packages/bounded-context-service-contracts/
+COPY packages/contracts/package*.json packages/contracts/
+COPY packages/platform/package*.json packages/platform/
+COPY packages/common/package*.json packages/common/
 
-# Copy workspace package.json files
-COPY backend/package.json backend/
-COPY frontend/package.json frontend/
-COPY packages/application/package.json packages/application/
-COPY packages/common/package.json packages/common/
-COPY packages/domain/package.json packages/domain/
-COPY packages/infrastructure/package.json packages/infrastructure/
+# Install all dependencies (including devDependencies needed for the build)
+RUN npm ci
 
-# Install dependencies at the root
-RUN npm install
-
-# Copy the rest of the application code, excluding node_modules
+# Copy source
 COPY . .
 
-# Build the project
+# Compile everything: shared-kernel, bounded contexts, packages, backend TS, frontend Vite
 RUN npm run build
 
-# Copy the entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
+# Remove dev dependencies — production deps only remain in node_modules
+RUN npm prune --production
 
-# Make the entrypoint script executable
+# ---- Stage 2: Runner ----
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+# Copy the entire pruned workspace from the builder.
+# Source files are present but harmless — only compiled build/ and dist/ directories execute.
+COPY --from=builder /app .
+
+COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
+
+ENV NODE_ENV=prod
+ENV PORT=8080
+
+# Install dotenvx and verify no plaintext .env files were accidentally included.
+# .dockerignore is the first gate; this is the second — it fails the build if any .env file slipped through.
+RUN npm install -g @dotenvx/dotenvx && dotenvx ext prebuild
 
 # Set the entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]
