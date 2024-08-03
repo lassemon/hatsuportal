@@ -10,7 +10,14 @@
     "clean:node_modules": "npx --yes rimraf -g \"packages/**/node_modules\" && npx --yes rimraf backend/node_modules && npx --yes rimraf frontend/node_modules",
     "clean": "npm run clean:lib && npm run clean:buildinfo && npm run clean:node_modules",
     "build": "tsc -b tsconfig.build.json",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "test:backend": "cd backend && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:frontend": "cd frontend && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:common": "cd packages/common && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:domain": "cd packages/domain && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:application": "cd packages/application && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:infrastructure": "cd packages/infrastructure && vitest run --config ./src/__test__/vitest.unit.mts",
+    "test:presentation": "cd packages/presentation && vitest run --config ./src/__test__/vitest.unit.mts"
   },
   "workspaces": [
     "backend",

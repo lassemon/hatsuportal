@@ -1,9 +1,9 @@
 import express, { json, urlencoded } from 'express'
 import { RegisterRoutes } from './routes'
-import Authentication from './auth/Authentication'
+import { Authentication } from 'infrastructure'
 import passport from 'passport'
 import cookieParser from 'cookie-parser'
-import { errorMiddleware } from './common/middlewares/errorMiddleware'
+import { errorMiddleware } from './infrastructure/middlewares/errorMiddleware'
 
 const app = express()
 const authentication = new Authentication(passport)

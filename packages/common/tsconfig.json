@@ -4,6 +4,6 @@
     "rootDir": "./src",
     "outDir": "./lib"
   },
-  "include": ["src/**/*", "src/__test__/**/*", "types/**/*.d.ts"],
+  "include": ["src/**/*", "src/__test__/**/*", "types/**/*.d.ts", "src/enums"],
   "exclude": ["node_modules", "lib"]
 }

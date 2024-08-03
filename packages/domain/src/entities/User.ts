@@ -1,134 +1,172 @@
-import { isArray } from 'lodash'
-import { UserRole } from '../enums/UserRole'
+import { UserName } from '../valueObjects/UserName'
+import { Email } from '../valueObjects/Email'
+import { UnixTimestamp } from '../valueObjects/UnixTimestamp'
+import { InvalidRoleListError } from '../errors/InvalidRoleListError'
+import { UserRole } from '../valueObjects/UserRole'
+import { omitNullAndUndefined, unixtimeNow, UserRoleEnum } from '@hatsuportal/common'
+import { InvalidUserValueError } from '../errors/InvalidUserValueError'
+import { UserId } from '../valueObjects/UserId'
 
-export interface UserDatabaseEntity {
+export interface UserProps {
   id: string
   name: string
-  password: string
   email: string
-  roles: string // json types are strings in database
-  active: number
+  active: boolean
+  roles: UserRoleEnum[]
   createdAt: number
   updatedAt: number | null
 }
 
-export interface UserDTO extends Omit<UserDatabaseEntity, 'password' | 'roles' | 'active'> {
-  roles: `${UserRole}`[]
-  active: boolean
-}
-
 export class User {
-  props: UserDTO
-  constructor(props: UserDTO) {
-    if (!props.id) throw new Error('User must have an id.')
-    if (!props.name) throw new Error('User must have a name.')
-    if (!props.email) throw new Error('User must have an email.')
-    if (!props.roles || props.roles.length <= 0) throw new Error('User must have at least one role.')
-    if (!props.createdAt) throw new Error('User must have a createdAt timestamp.')
-
-    this.props = {
-      ...props,
-      active: !!props.active // active is stored as numeric 1 (MariaDB Tinyint) in database, convert it to boolean here just in case it hasn't been converted already
-    }
-    this.validateProps(props)
-  }
-
-  private validateProps(props: UserDTO) {
-    const allowedKeys = this.getAllowedKeys()
-    const extraKeys = Object.keys(props).filter((key) => !allowedKeys.includes(key as keyof UserDTO))
-    if (extraKeys.length > 0) {
-      throw new Error(`Props contain extra keys: ${extraKeys.join(', ')}.`)
+  static canCreate(props: any) {
+    try {
+      new User(props)
+      return true
+    } catch {
+      return false
     }
   }
 
-  protected getAllowedKeys(): (keyof UserDTO)[] {
-    return ['id', 'name', 'email', 'roles', 'active', 'createdAt', 'updatedAt'] as (keyof UserDTO)[]
+  private _id: UserId
+  private _name: UserName
+  private _email: Email
+  private _active: boolean
+  private _roles: UserRole[]
+
+  private _createdAt: UnixTimestamp
+  private _updatedAt: UnixTimestamp | null
+
+  constructor(props: UserProps) {
+    this._id = new UserId(props.id)
+    this._name = new UserName(props.name)
+    this._email = new Email(props.email)
+
+    if (!props.roles || props.roles.length <= 0) throw new InvalidRoleListError('User must have at least one role.')
+    this._roles = props.roles.map((role) => new UserRole(role))
+
+    if ((props.active ?? null) === null || typeof props.active !== 'boolean')
+      throw new InvalidUserValueError('Property "active" must be a boolean.')
+    this._active = props.active
+
+    this._createdAt = new UnixTimestamp(props.createdAt)
+    this._updatedAt = props.updatedAt ? new UnixTimestamp(props.updatedAt) : null
   }
 
-  get id(): string {
-    return this.props.id
+  get id(): UserId {
+    return this._id
   }
 
-  get name(): string {
-    return this.props.name
+  get name(): UserName {
+    return this._name
   }
 
-  get email(): string {
-    return this.props.email
+  set name(name: string) {
+    this._name = new UserName(name)
   }
 
-  get roles(): `${UserRole}`[] {
-    return this.props.roles
+  get email(): Email {
+    return this._email
   }
 
-  set roles(roles: `${UserRole}`[]) {
-    this.props.roles = roles
+  set email(email: string) {
+    this._email = new Email(email)
+  }
+
+  get roles(): UserRole[] {
+    return this._roles
   }
 
   get active(): boolean {
-    return this.props.active
+    return this._active
   }
 
-  get createdAt(): number {
-    return this.props.createdAt
+  set active(active: boolean) {
+    if ((active ?? null) === null || typeof active !== 'boolean') throw new InvalidUserValueError('Property "active" must be a boolean.')
+    this._active = active
   }
 
-  get updatedAt(): number | null {
-    return this.props.updatedAt
+  set roles(roles: UserRoleEnum[]) {
+    if (!roles || roles.length <= 0) throw new InvalidRoleListError('User must have at least one role.')
+    this._roles = roles.map((role) => new UserRole(role))
+  }
+
+  get createdAt(): UnixTimestamp {
+    return this._createdAt
+  }
+
+  get updatedAt(): UnixTimestamp | null {
+    return this._updatedAt
   }
 
   set updatedAt(updatedAt: number | null) {
-    this.props.updatedAt = updatedAt
+    this._updatedAt = updatedAt ? new UnixTimestamp(updatedAt) : null
   }
 
   isAdmin() {
-    return this.props.roles.some((role) => ([UserRole.SuperAdmin, UserRole.Admin] as `${UserRole}`[]).includes(role))
+    return this._roles.some((role) => ([UserRoleEnum.SuperAdmin, UserRoleEnum.Admin] as UserRoleEnum[]).includes(role.value))
   }
 
-  isEqual(otherUser: this | object | null): boolean {
-    if (otherUser === null) {
-      return false
-    }
-    return JSON.stringify(this) === JSON.stringify(otherUser)
-  }
-
-  public clone<C extends User>(props?: Partial<UserDTO>): C {
-    if (props) {
-      const cloneProps = {
-        ...this.props,
-        ...props
-      }
-      return new (this.constructor as { new (props: UserDTO): C })(cloneProps as UserDTO)
-    } else {
-      return new (this.constructor as { new (props: UserDTO): C })(this.serialize() as UserDTO)
+  public getProps() {
+    return {
+      id: this._id.value,
+      name: this._name.value,
+      email: this._email.value,
+      roles: this._roles.map((role) => role.value),
+      active: this._active,
+      createdAt: this._createdAt.value,
+      updatedAt: this._updatedAt?.value ?? null
     }
   }
 
-  public serialize(): UserDTO {
-    return JSON.parse(
-      JSON.stringify(
-        Object.fromEntries(
-          Object.entries(this.props).map((entry) => {
-            let [key, value] = entry
-            const valueIsArray = isArray(value)
-            if (valueIsArray) value = value.map((item: any) => (item?.serialize ? item.serialize() : item))
-            const serializedValue = value?.serialize ? value.serialize() : value
-            return [key, serializedValue]
-          })
-        )
-      )
+  public update(props: Partial<UserProps>): void {
+    const sanitizedProps = omitNullAndUndefined(props)
+
+    if (User.canCreate({ ...this.getProps(), ...sanitizedProps })) {
+      if (sanitizedProps.name) this.name = sanitizedProps.name
+      if (sanitizedProps.email) this.email = sanitizedProps.email
+
+      if (!sanitizedProps.roles || sanitizedProps.roles.length <= 0) throw new InvalidRoleListError('User must have at least one role.')
+      this.roles = sanitizedProps.roles
+
+      if ((sanitizedProps.active ?? null) === null || typeof sanitizedProps.active !== 'boolean')
+        throw new InvalidUserValueError('Property "active" must be a boolean.')
+      this.active = sanitizedProps.active
+
+      this.updatedAt = unixtimeNow()
+    }
+  }
+
+  equals(other: unknown): boolean {
+    return (
+      other instanceof User &&
+      this.id.equals(other.id) &&
+      this.name.equals(other.name) &&
+      this.email.equals(other.email) &&
+      this.areRolesEqual(this.roles, other.roles) &&
+      this.active === other.active &&
+      this.createdAt.equals(other.createdAt)
     )
   }
 
-  public toString(): string {
-    return JSON.stringify(this.serialize())
-  }
+  private areRolesEqual(roles1: UserRole[], roles2: UserRole[]): boolean {
+    if (roles1.length !== roles2.length) {
+      return false
+    }
 
-  public static fromRecord(userRecord: Omit<UserDatabaseEntity, 'password'>): User {
-    return new User({
-      ...userRecord,
-      active: !!userRecord.active,
-      roles: JSON.parse(userRecord.roles)
-    })
+    // use Set because order or the roles is not significant
+    const roleSet1 = new Set(roles1.map((role) => role.value))
+    const roleSet2 = new Set(roles2.map((role) => role.value))
+
+    if (roleSet1.size !== roleSet2.size) {
+      return false
+    }
+
+    for (const role of roleSet1) {
+      if (!roleSet2.has(role)) {
+        return false
+      }
+    }
+
+    return true
   }
 }

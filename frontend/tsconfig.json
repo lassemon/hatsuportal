@@ -17,8 +17,9 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
     "types": ["node", "vite/client"]
   },
   "include": ["src"],
-  "references": [{ "path": "../packages/common" }, { "path": "../packages/domain" }, { "path": "../packages/application" }]
+  "references": [{ "path": "../packages/common" }, { "path": "../packages/presentation" }]
 }

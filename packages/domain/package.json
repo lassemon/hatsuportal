@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "build": "tsc -b tsconfig.json",
     "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests"
   },
   "exports": {
@@ -15,13 +16,16 @@
   },
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "@hatsuportal/common": "^1.0.0",
+    "email-validator": "^2.0.4",
+    "lodash": "^4.17.21",
+    "password-validator": "^5.3.0"
+  },
   "devDependencies": {
     "typescript": "^5.4.5",
     "vite": "^5.3.4",
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^2.0.4"
-  },
-  "dependencies": {
-    "@hatsuportal/common": "^1.0.0"
   }
 }

@@ -1,36 +1,20 @@
-import {
-  CreateImageRequestDTO,
-  CreateItemRequestDTO,
-  CreateUserRequestDTO,
-  InsertUserQueryDTO,
-  UpdateImageRequestDTO,
-  UpdateItemRequestDTO,
-  UpdateUserQueryDTO
-} from '@hatsuportal/application'
-import { UpdateUserRequestDTO } from '@hatsuportal/application/lib/api/requests/UpdateUserRequestDTO'
-import { unixtimeNow } from '@hatsuportal/common'
-import {
-  EntityType,
-  ImageMetadataDTO,
-  ItemDTO,
-  UserDatabaseEntity,
-  UserDTO,
-  UserRepositoryInterface,
-  UserRole,
-  Visibility
-} from '@hatsuportal/domain'
+import { PostTypeEnum, unixtimeNow, UserRoleEnum, VisibilityEnum } from '@hatsuportal/common'
 import { vi } from 'vitest'
+import { UserDatabaseSchema } from '../schemas/UserDatabaseSchema'
+import { ImageDTO, ImageMetadataDTO, IUserRepository, StoryDTO, UserDTO } from '@hatsuportal/application'
+import { ImageMetadataDatabaseSchema } from '../schemas/ImageMetadataDatabaseSchema'
+import { StoryDatabaseSchema } from '../schemas/StoryDatabaseSchema'
 
-const createdAt = unixtimeNow()
+const createdAt = unixtimeNow() - 3000
 const updatedAt = createdAt + 1500
 
-export const user = (): UserDTO => {
+export const userDTO = (): UserDTO => {
   return {
     ...{
-      id: 'userId',
+      id: 'test1b19-user-4792-a2f0-f95ccab82d92',
       name: 'username',
-      email: 'email',
-      roles: [UserRole.Admin],
+      email: 'email@test.com',
+      roles: [UserRoleEnum.Admin, UserRoleEnum.Moderator],
       active: true,
       createdAt,
       updatedAt
@@ -38,163 +22,13 @@ export const user = (): UserDTO => {
   }
 }
 
-export const imageMetadata = (): ImageMetadataDTO => {
+export const userDatabaseRecord = (): UserDatabaseSchema => {
   return {
     ...{
-      id: 'testImageId',
-      visibility: Visibility.Public,
-      fileName: 'filename.png',
-      mimeType: 'image/png',
-      size: 1537565,
-      ownerId: '123',
-      ownerType: EntityType.Item,
-      createdBy: '0',
-      createdByUserName: 'testUserName',
-      createdAt,
-      updatedAt
-    }
-  }
-}
-
-export const image = () => {
-  return {
-    ...{
-      ...imageMetadata(),
-      base64: 'asdasdasd'
-    }
-  }
-}
-
-export const createImageRequest = (): CreateImageRequestDTO => {
-  return {
-    ...{
-      id: 'not ok id', // should not be able to give this
-      visibility: Visibility.Public,
-      fileName: 'filename.png',
-      mimeType: 'image/png',
-      size: 1537565,
-      ownerId: '123',
-      ownerType: EntityType.Item,
-      base64: 'asdasdasd',
-      createdBy: '345', // should not be able to give this
-      createdByUserName: 'foobar', // should not be able to give this
-      createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to give this
-      updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to give this
-    }
-  }
-}
-
-export const updateImageRequest = (): UpdateImageRequestDTO => {
-  return {
-    ...{
-      id: imageMetadata().id,
-      visibility: Visibility.Private,
-      size: 1577165,
-      base64: 'loremipsum',
-      createdBy: '123', // should not be able to change this
-      createdByUserName: 'foobar', // should not be able to change this
-      createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to change this
-      updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to change this
-    }
-  }
-}
-
-export const item = (): ItemDTO => {
-  return {
-    ...{
-      id: 'testItemId',
-      visibility: Visibility.Public,
-      createdBy: '0',
-      createdByUserName: 'testUserName',
-      createdAt,
-      updatedAt,
-      imageId: null,
-      name: 'test item',
-      description: 'A test item.'
-    }
-  }
-}
-
-export const createItemRequest = (): CreateItemRequestDTO => {
-  return {
-    ...{
-      item: {
-        ...{
-          id: 'not ok id', // should not be able to give this
-          visibility: item().visibility,
-          name: item().name,
-          description: item().description,
-          createdBy: '123', // should not be able to give this
-          createdByUserName: 'foobar', // should not be able to give this
-          createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to give this
-          updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to give this
-        }
-      },
-      image: {
-        ...image()
-      }
-    }
-  }
-}
-
-export const updateItemRequest = (): UpdateItemRequestDTO => {
-  return {
-    ...{
-      item: {
-        ...{
-          id: item().id,
-          visibility: Visibility.Private,
-          name: 'test item name changed',
-          description: 'A test item with a new description.',
-          createdBy: '123', // should not be able to change this
-          createdByUserName: 'foobar', // should not be able to change this
-          createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to change this
-          updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to change this
-        }
-      },
-      image: {
-        ...image()
-      }
-    }
-  }
-}
-
-export const createUserRequest = (): CreateUserRequestDTO => {
-  return {
-    ...{
-      ...user(),
-      password: 'password',
-      id: 'not ok id', // should not be able to give this
-      createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to give this
-      updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to give this
-    }
-  }
-}
-
-export const updateUserRequest = (): UpdateUserRequestDTO => {
-  return {
-    ...{
-      id: user().id,
-      email: 'updatedemail',
-      oldPassword: 'password',
-      newPassword: 'updatedPassword',
-      name: 'updated name',
-      password: 'some password',
-      roles: [UserRole.Editor, UserRole.Moderator],
-      active: false,
-      createdAt: unixtimeNow({ substract: { minutes: 1 } }), // should not be able to change this,
-      updatedAt: unixtimeNow({ add: { minutes: 1 } }) // should not be able to change this
-    }
-  }
-}
-
-export const userDatabaseEntity = (): UserDatabaseEntity => {
-  return {
-    ...{
-      id: 'userId',
+      id: 'test1b19-user-4792-a2f0-f95ccab82d92',
       name: 'username',
       password: '$2a$10$Ktrlfz7aJd.Vnp4WZ7jvOeD21HoMZGorwPefzm0BOWyJ5SNgem8TW', // this is the word 'passwordhash' encrypted with bcrypt
-      email: 'email',
+      email: 'email@test.com',
       roles: `["admin", "moderator"]`, // json types are strings in database
       active: 1,
       createdAt,
@@ -203,12 +37,89 @@ export const userDatabaseEntity = (): UserDatabaseEntity => {
   }
 }
 
+export const imageMetadataDTO = (): ImageMetadataDTO => {
+  return {
+    ...{
+      id: 'test1b19-meta-ty92-a2f0-f95cc2entity',
+      visibility: VisibilityEnum.Public,
+      fileName: 'filename.png',
+      mimeType: 'image/png',
+      size: 1537565,
+      ownerId: 'test1b19-story-4792-a2f0-f95ccab82d92',
+      ownerType: PostTypeEnum.Story,
+      createdBy: 'test1b19-user-4792-a2f0-f95ccab82d92',
+      createdByUserName: 'username',
+      createdAt,
+      updatedAt
+    }
+  }
+}
+
+export const imageMetadataDatabaseRecord = (): ImageMetadataDatabaseSchema => {
+  return {
+    ...{
+      id: 'test1b19-enti-ty92-a2f0-f95cc2entity',
+      visibility: VisibilityEnum.Public,
+      fileName: 'filename.png',
+      mimeType: 'image/png',
+      size: 1537565,
+      ownerId: storyDTO().id,
+      ownerType: PostTypeEnum.Story,
+      createdBy: 'test1b19-user-4792-a2f0-f95ccab82d92',
+      createdByUserName: 'username',
+      createdAt,
+      updatedAt
+    }
+  }
+}
+
+export const imageDTO = (): ImageDTO => {
+  return {
+    ...{
+      ...imageMetadataDTO(),
+      base64: 'asdasdasd'
+    }
+  }
+}
+
+export const storyDTO = (): StoryDTO => {
+  return {
+    ...{
+      id: 'test1b19-story-4792-a2f0-f95ccab82d92',
+      visibility: VisibilityEnum.Public,
+      createdBy: 'test1b19-user-4792-a2f0-f95ccab82d92',
+      createdByUserName: 'username',
+      createdAt,
+      updatedAt,
+      imageId: null,
+      name: 'test story',
+      description: 'A test story.'
+    }
+  }
+}
+
+export const storyDatabaseRecord = (): StoryDatabaseSchema => {
+  return {
+    ...{
+      id: 'test1b19-story-4792-a2f0-f95ccab82d92',
+      visibility: VisibilityEnum.Public,
+      createdBy: 'test1b19-user-4792-a2f0-f95ccab82d92',
+      createdByUserName: 'username',
+      createdAt,
+      updatedAt,
+      imageId: imageMetadataDatabaseRecord().id,
+      name: 'test story',
+      description: 'A test story.'
+    }
+  }
+}
+
 export const userRepositoryMock = () => {
-  class UserRepositoryMock implements UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO> {
+  class UserRepositoryMock implements IUserRepository {
     getAll = vi.fn()
     findById = vi.fn()
-    findWithPasswordById = vi.fn()
-    findWithPasswordByName = vi.fn()
+    getUserCredentialsByUserId = vi.fn()
+    getUserCredentialsByUsername = vi.fn()
     findByName = vi.fn()
     count = vi.fn()
     insert = vi.fn()

@@ -1,71 +1,54 @@
 import { describe, expect, it } from 'vitest'
 import ImageMetadata from './ImageMetadata'
-import { Visibility } from '../enums/Visibility'
+import { uuid, VisibilityEnum } from '@hatsuportal/common'
+import { InvalidPostIdError } from '../errors/InvalidPostIdError'
+import _ from 'lodash'
 
 describe('ImageMetadata', () => {
   it('can create image metadata with all properties', ({ unitFixture }) => {
-    const metadata = new ImageMetadata(unitFixture.imageMetadata())
-    expect(metadata.fileName).toBe(unitFixture.serializedImageMetadata().fileName)
-    expect(metadata.mimeType).toBe(unitFixture.serializedImageMetadata().mimeType)
-    expect(metadata.size).toBe(unitFixture.serializedImageMetadata().size)
-    expect(metadata.ownerId).toStrictEqual(unitFixture.serializedImageMetadata().ownerId)
-    expect(metadata.ownerType).toBe(unitFixture.serializedImageMetadata().ownerType)
+    const metadata = new ImageMetadata(unitFixture.imageMetadataDTO())
+    expect(metadata.fileName.value).toBe(unitFixture.imageMetadataDTO().fileName)
+
+    expect(metadata.storageFileName.value).toBe(
+      `${unitFixture.imageMetadataDTO().ownerType}_${unitFixture.imageMetadataDTO().createdBy}_${unitFixture.imageMetadataDTO().fileName}`
+    )
+    expect(metadata.mimeType.value).toBe(unitFixture.imageMetadataDTO().mimeType)
+    expect(metadata.size.value).toBe(unitFixture.imageMetadataDTO().size)
+    expect(metadata.ownerId?.value).toStrictEqual(unitFixture.imageMetadataDTO().ownerId)
+    expect(metadata.ownerType?.value).toBe(unitFixture.imageMetadataDTO().ownerType)
+  })
+
+  it('sets file extension based on mime type, not filename string', ({ unitFixture }) => {
+    const metadata = new ImageMetadata({
+      ...unitFixture.imageMetadataDTO(),
+      fileName: 'test.gif',
+      mimeType: 'video/x-msvideo'
+    })
+    expect(metadata.fileName.value).toBe('test.gif.avi')
+    expect(metadata.storageFileName.value).toBe(`${metadata.ownerType.value}_${metadata.createdBy.value}_test.gif.avi`)
   })
 
   it('does not allow creating image metadata without an id', ({ unitFixture }) => {
-    const { id, ...entityWithoutId } = unitFixture.imageMetadata()
+    const { id, ...postWithoutId } = unitFixture.imageMetadataDTO()
     expect(() => {
-      new ImageMetadata(entityWithoutId as any)
-    }).toThrow('Entity must have an id')
+      new ImageMetadata(postWithoutId as any)
+    }).toThrow(InvalidPostIdError)
   })
 
   it('does not allow creating image metadata with an id with empty spaces', ({ unitFixture }) => {
     expect(() => {
-      new ImageMetadata({ ...unitFixture.imageMetadata(), id: ' te st ' } as any)
-    }).toThrow('Entity id " te st " cannot contain white spaces.')
-  })
-
-  it('does not allow creating image metadata with extra props', ({ unitFixture }) => {
-    expect(() => {
-      new ImageMetadata({ ...unitFixture.imageMetadata(), extraProp: 'foobar' } as any)
-    }).toThrow('Props contain extra keys: extraProp.')
+      new ImageMetadata({ ...unitFixture.imageMetadataDTO(), id: ' te st ' } as any)
+    }).toThrow(InvalidPostIdError)
   })
 
   it('can compare image metadatas', ({ unitFixture }) => {
-    const entity = new ImageMetadata(unitFixture.imageMetadata())
-    const entity2 = new ImageMetadata({
-      ...unitFixture.imageMetadata(),
-      id: 'testId2',
-      visibility: Visibility.Private
+    const post = new ImageMetadata(unitFixture.imageMetadataDTO())
+    const post2 = new ImageMetadata({
+      ...unitFixture.imageMetadataDTO(),
+      id: uuid(),
+      visibility: VisibilityEnum.Private
     })
-    expect(entity.isEqual(entity)).toBe(true)
-    expect(entity.isEqual(entity2)).toBe(false)
-  })
-
-  it('can clone image metadata', ({ unitFixture }) => {
-    const original = new ImageMetadata(unitFixture.imageMetadata())
-    const clone = original.clone({ visibility: Visibility.Private })
-    expect(original.visibility).toBe(unitFixture.serializedImageMetadata().visibility)
-    expect(clone.visibility).toBe(Visibility.Private)
-
-    const { visibility: origVisibility, ...serializedOriginal } = original.serialize()
-    const { visibility: cloneVisibility, ...serializedClone } = clone.serialize()
-    expect(JSON.stringify(serializedOriginal)).toBe(JSON.stringify(serializedClone))
-  })
-
-  it('can serialize image metadata', ({ unitFixture }) => {
-    const entity = new ImageMetadata(unitFixture.imageMetadata())
-    expect(typeof entity.serialize()).toBe('object')
-    expect(entity.serialize()).toStrictEqual(unitFixture.serializedImageMetadata())
-  })
-
-  it('can stringify image metadata', ({ unitFixture }) => {
-    const entity = new ImageMetadata(unitFixture.imageMetadata())
-    expect(typeof entity.toString()).toBe('string')
-    // we need to use JSON.parse and toStringEqual here instead of
-    // JSON.stringify === JSON.stringify comparison because serializing the entity
-    // (which the toString method calls) changes the order of the
-    // properties from the original JSON
-    expect(JSON.parse(entity.toString())).toStrictEqual(unitFixture.serializedImageMetadata())
+    expect(post.equals(post)).toBe(true)
+    expect(post.equals(post2)).toBe(false)
   })
 })
