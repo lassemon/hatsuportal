@@ -1,0 +1,1 @@
+export { GetUserProfileUseCase } from './GetUserProfileUseCase'
