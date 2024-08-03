@@ -1,0 +1,29 @@
+{
+  "name": "@hatsuportal/user-management",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests",
+    "clean": "npx --yes rimraf lib && npx --yes rimraf tsconfig.tsbuildinfo && npx --yes rimraf coverage",
+    "reset": "npm run clean && npx --yes rimraf node_modules"
+  },
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hatsuportal/contracts": "^1.0.0",
+    "@hatsuportal/platform": "^1.0.0",
+    "@hatsuportal/shared-kernel": "^1.0.0",
+    "email-validator": "^2.0.4",
+    "jsonwebtoken": "^9.0.2",
+    "password-validator": "^5.3.0"
+  }
+}

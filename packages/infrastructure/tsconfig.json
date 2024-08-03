@@ -1,9 +1,0 @@
-{
-  "extends": "../../tsconfig.package.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "lib"
-  },
-  "references": [{ "path": "../domain" }],
-  "exclude": ["node_modules", "lib"]
-}

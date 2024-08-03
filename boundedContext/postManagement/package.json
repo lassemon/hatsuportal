@@ -1,0 +1,29 @@
+{
+  "name": "@hatsuportal/post-management",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js",
+      "require": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "test": "vitest run --config ./src/__test__/vitest.unit.mts --passWithNoTests",
+    "clean": "npx --yes rimraf lib && npx --yes rimraf tsconfig.tsbuildinfo && npx --yes rimraf coverage",
+    "reset": "npm run clean && npx --yes rimraf node_modules"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hatsuportal/bounded-context-service-contracts": "^1.0.0",
+    "@hatsuportal/contracts": "^1.0.0",
+    "@hatsuportal/platform": "^1.0.0",
+    "@hatsuportal/shared-kernel": "^1.0.0",
+    "webp-converter": "^2.3.3"
+  }
+}
