@@ -1,11 +1,11 @@
 import { unixtimeNow } from '@hatsuportal/common'
 
 import _ from 'lodash'
-import { SynchronousLocalStorageServiceInterface } from './SynchronousLocalStorageServiceInterface'
+import { ISynchronousLocalStorageService } from './ISynchronousLocalStorageService'
 
 export const ITEM_STATE_NAME = 'itemState'
 
-export class SynchronousLocalStorageService<T> implements SynchronousLocalStorageServiceInterface<T> {
+export class SynchronousLocalStorageService<T> implements ISynchronousLocalStorageService<T> {
   findById(key: string): T {
     const storedItem = JSON.parse(localStorage.getItem(key) || '{}')
     return !_.isEmpty(storedItem) ? storedItem : null

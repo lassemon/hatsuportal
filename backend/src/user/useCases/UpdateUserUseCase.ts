@@ -1,29 +1,21 @@
 import {
   InsertUserQueryDTO,
   UpdateUserQueryDTO,
-  UpdateUserRequestDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface,
-  UserMapperInterface,
-  UserServiceInterface
+  IUserMapper,
+  IUserService,
+  IUpdateUserUseCase,
+  IUpdateUserUseCaseOptions
 } from '@hatsuportal/application'
-import { ApiError, User, UserDTO, UserRepositoryInterface } from '@hatsuportal/domain'
+import { ApiError, UserDTO, IUserRepository } from '@hatsuportal/domain'
 
-export interface UpdateUserUseCaseOptions extends UseCaseOptionsInterface {
-  userUpdateRequest: UpdateUserRequestDTO
-  user: User
-}
-
-export type UpdateUserUseCaseInterface = UseCaseInterface<UpdateUserUseCaseOptions, UserDTO>
-
-export class UpdateUserUseCase implements UpdateUserUseCaseInterface {
+export class UpdateUserUseCase implements IUpdateUserUseCase {
   constructor(
-    private readonly userMapper: UserMapperInterface,
-    private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>,
-    private readonly userService: UserServiceInterface
+    private readonly userRepository: IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO>,
+    private readonly userMapper: IUserMapper,
+    private readonly userService: IUserService
   ) {}
 
-  async execute({ userUpdateRequest, user: loggedInUser }: UpdateUserUseCaseOptions): Promise<UserDTO> {
+  async execute({ userUpdateRequest, user: loggedInUser }: IUpdateUserUseCaseOptions): Promise<UserDTO> {
     // TODO allow updating other than the logged in user here or create new ModifyUserUseCase where an admin can change other users
     const existingUser = await this.userRepository.findById(userUpdateRequest.id)
     if (!existingUser || !existingUser.active) {

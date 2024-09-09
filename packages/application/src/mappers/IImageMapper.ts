@@ -5,7 +5,7 @@ import { UpdateImageRequestDTO } from '../api/requests/UpdateImageRequestDTO'
 import { InsertImageMetadataQueryDTO } from '../persistence/queries/InsertImageMetadataQueryDTO'
 import { UpdateImageMetadataQueryDTO } from '../persistence/queries/UpdateImageMetadataQueryDTO'
 
-export interface ImageMapperInterface {
+export interface IImageMapper {
   createRequestToImageMetadata(createImageRequest: CreateImageRequestDTO, user: User): ImageMetadata
   updateRequestToImageMetadata(existingImageMetadata: ImageMetadataDTO, updateImageRequest: UpdateImageRequestDTO): ImageMetadata
   toInsertQuery(imageMetadata: ImageMetadataDTO): InsertImageMetadataQueryDTO

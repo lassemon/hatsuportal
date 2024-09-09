@@ -2,7 +2,7 @@ import { Image, ImageDTO, ImageMetadata, ImageMetadataDTO, User } from '@hatsupo
 import { NotMutableUpdateProperties, OmitNotMutableUpdateProperties, PartialExceptFor, unixtimeNow, uuid } from '@hatsuportal/common'
 import {
   CreateImageRequestDTO,
-  ImageMapperInterface,
+  IImageMapper,
   ImageResponseDTO,
   InsertImageMetadataQueryDTO,
   UpdateImageMetadataQueryDTO,
@@ -10,7 +10,7 @@ import {
 } from '@hatsuportal/application'
 import _ from 'lodash'
 
-export class ImageMapper implements ImageMapperInterface {
+export class ImageMapper implements IImageMapper {
   public createRequestToImageMetadata(createRequest: CreateImageRequestDTO, user: User): ImageMetadata {
     const imageBlueprint: ImageMetadataDTO = {
       id: uuid(),

@@ -1,14 +1,8 @@
-import { Item, ItemDatabaseEntity, ItemRepositoryInterface, ItemSortableKey, Order, UnknownError, Visibility } from '@hatsuportal/domain'
+import { Item, ItemDatabaseEntity, IItemRepository, ItemSortableKey, Order, UnknownError, Visibility } from '@hatsuportal/domain'
 import { Logger } from '@hatsuportal/common'
 import { Knex } from 'knex'
 import { ItemSortFields } from '@hatsuportal/domain'
-import {
-  CountItemsQueryDTO,
-  InsertItemQueryDTO,
-  ItemMapperInterface,
-  SearchItemsQueryDTO,
-  UpdateItemQueryDTO
-} from '@hatsuportal/application'
+import { CountItemsQueryDTO, InsertItemQueryDTO, IItemMapper, SearchItemsQueryDTO, UpdateItemQueryDTO } from '@hatsuportal/application'
 import connection from '../common/database/connection'
 
 const logger = new Logger('ItemRepository')
@@ -75,8 +69,8 @@ const withWordSearch = (wordSearch?: string) => (queryBuilder: Knex.QueryBuilder
   }
 }
 
-class ItemRepository implements ItemRepositoryInterface<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO> {
-  constructor(private readonly itemMapper: ItemMapperInterface) {}
+class ItemRepository implements IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO> {
+  constructor(private readonly itemMapper: IItemMapper) {}
 
   async findAllPublic(orderBy: ItemSortableKey, order: Order): Promise<Item[]> {
     return (

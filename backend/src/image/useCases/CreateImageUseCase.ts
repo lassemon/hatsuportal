@@ -1,30 +1,23 @@
 import {
   CreateImageRequestDTO,
-  ImageMapperInterface,
+  IImageMapper,
   InsertImageMetadataQueryDTO,
   UpdateImageMetadataQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  ICreateImageUseCase,
+  ICreateImageUseCaseOptions
 } from '@hatsuportal/application'
-import { ImageServiceInterface } from '@hatsuportal/application'
+import { IImageService } from '@hatsuportal/application'
 
-import { ApiError, ImageDTO, ImageMetadata, ImageMetadataRepositoryInterface, User } from '@hatsuportal/domain'
+import { ApiError, ImageDTO, ImageMetadata, IImageMetadataRepository } from '@hatsuportal/domain'
 
-export interface CreateImageUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-  createImageRequest: CreateImageRequestDTO
-}
-
-export type CreateImageUseCaseInterface = UseCaseInterface<CreateImageUseCaseOptions, ImageDTO>
-
-export class CreateImageUseCase implements CreateImageUseCaseInterface {
+export class CreateImageUseCase implements ICreateImageUseCase {
   constructor(
-    private readonly imageService: ImageServiceInterface,
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly imageMapper: ImageMapperInterface
+    private readonly imageService: IImageService,
+    private readonly imageMetadataRepository: IImageMetadataRepository<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
+    private readonly imageMapper: IImageMapper
   ) {}
 
-  async execute({ createImageRequest, user }: CreateImageUseCaseOptions): Promise<ImageDTO> {
+  async execute({ createImageRequest, user }: ICreateImageUseCaseOptions): Promise<ImageDTO> {
     const imageMetadata = this.imageMapper.createRequestToImageMetadata(createImageRequest, user)
 
     await this.ensureUniqueImageId(imageMetadata.id)

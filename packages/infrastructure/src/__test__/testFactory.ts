@@ -5,9 +5,9 @@ import {
   InsertUserQueryDTO,
   UpdateImageRequestDTO,
   UpdateItemRequestDTO,
-  UpdateUserQueryDTO
+  UpdateUserQueryDTO,
+  UpdateUserRequestDTO
 } from '@hatsuportal/application'
-import { UpdateUserRequestDTO } from '@hatsuportal/application/lib/api/requests/UpdateUserRequestDTO'
 import { unixtimeNow } from '@hatsuportal/common'
 import {
   EntityType,
@@ -15,7 +15,7 @@ import {
   ItemDTO,
   UserDatabaseEntity,
   UserDTO,
-  UserRepositoryInterface,
+  IUserRepository,
   UserRole,
   Visibility
 } from '@hatsuportal/domain'
@@ -204,7 +204,7 @@ export const userDatabaseEntity = (): UserDatabaseEntity => {
 }
 
 export const userRepositoryMock = () => {
-  class UserRepositoryMock implements UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO> {
+  class UserRepositoryMock implements IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO> {
     getAll = vi.fn()
     findById = vi.fn()
     findWithPasswordById = vi.fn()

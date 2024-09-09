@@ -1,4 +1,4 @@
-export interface LocalStorageServiceInterface<T> {
+export interface ILocalStorageService<T> {
   findById(id?: string): Promise<T | null>
   store(entity: T | null, key?: string): Promise<T>
   delete(id: string): Promise<T>

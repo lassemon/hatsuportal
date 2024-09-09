@@ -1,4 +1,4 @@
-import { ImageProcessingServiceInterface, ImageStorageServiceInterface } from '@hatsuportal/application'
+import { IImageProcessingService, IImageStorageService } from '@hatsuportal/application'
 import { unixtimeNow } from '@hatsuportal/common'
 import { EntityType, ImageMetadataDTO, Visibility } from '@hatsuportal/domain'
 import { vi } from 'vitest'
@@ -31,7 +31,7 @@ export const base64ImageBuffer = () => {
 }
 
 export const imageProcessingServiceMock = () => {
-  class ImageProcessingService implements ImageProcessingServiceInterface {
+  class ImageProcessingService implements IImageProcessingService {
     resizeImage = vi.fn()
     getBufferMimeType = vi.fn()
   }
@@ -40,7 +40,7 @@ export const imageProcessingServiceMock = () => {
 }
 
 export const imageStorageServiceMock = () => {
-  class ImageStorageService implements ImageStorageServiceInterface {
+  class ImageStorageService implements IImageStorageService {
     writeImageBufferToFile = vi.fn()
     getImageFromFileSystem = vi.fn()
     deleteImageFromFileSystem = vi.fn()

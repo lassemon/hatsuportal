@@ -1,13 +1,32 @@
-export type { ImageServiceInterface } from './services/ImageServiceInterface'
-export type { UserServiceInterface } from './services/UserServiceInterface'
-export type {
-  BrowserImageProcessingServiceInterface,
-  BrowserImageProcessingOptions
-} from './services/BrowserImageProcessingServiceInterface'
-export type { ImageProcessingServiceInterface } from './services/ImageProcessingServiceInterface'
-export type { ImageStorageServiceInterface } from './services/ImageStorageServiceInterface'
+export type { IImageService } from './services/IImageService'
+export type { IUserService } from './services/IUserService'
+export type { IBrowserImageProcessingService, BrowserImageProcessingOptions } from './services/IBrowserImageProcessingService'
+export type { IImageProcessingService } from './services/IImageProcessingService'
+export type { IImageStorageService } from './services/IImageStorageService'
 
-export type { UseCaseInterface, UseCaseOptionsInterface } from './useCases/UseCaseInterface'
+export type { IUseCase, IUseCaseOptions } from './useCases/IUseCase'
+export type { IUseCaseFactory } from './services/IUseCaseFactory'
+
+export type { ICreateUserUseCase, ICreateUserUseCaseOptions } from './useCases/ICreateUserUseCase'
+export type { IUpdateUserUseCase, IUpdateUserUseCaseOptions } from './useCases/IUpdateUserUseCase'
+export type { IDeactivateUserUseCase, IDeactivateUserUseCaseOptions } from './useCases/IDeactivateUserUseCase'
+export type { IFindUserUseCase, IFindUserUseCaseOptions } from './useCases/IFindUserUseCase'
+export type { IGetAllUsersUseCase, IGetAllUsersUseCaseOptions } from './useCases/IGetAllUsersUseCase'
+
+export type { ICreateItemUseCase, ICreateItemUseCaseOptions } from './useCases/ICreateItemUseCase'
+export type { IDeleteItemUseCase, IDeleteItemUseCaseOptions } from './useCases/IDeleteItemUseCase'
+export type { IFindItemUseCase, IFindItemUseCaseOptions } from './useCases/IFindItemUseCase'
+export type { IFindMyItemsUseCase, IFindMyItemsUseCaseOptions } from './useCases/IFindMyItemsUseCase'
+export type { ISearchItemsUseCase, ISearchItemsUseCaseOptions } from './useCases/ISearchItemsUseCase'
+export type { IUpdateItemUseCase, UpdateItemUseCaseOptions } from './useCases/IUpdateItemUseCase'
+
+export type { ICreateImageUseCase, ICreateImageUseCaseOptions } from './useCases/ICreateImageUseCase'
+export type { IFindImageUseCase, IFindImageUseCaseOptions } from './useCases/IFindImageUseCase'
+export type { IRemoveImageFromItemUseCase, IRemoveImageFromItemUseCaseOptions } from './useCases/IRemoveImageFromItemUseCase'
+export type { IUpdateImageUseCase, IUpdateImageUseCaseOptions } from './useCases/IUpdateImageUseCase'
+
+export type { IGetUserProfileUseCase, IGetUserProfileUseCaseOptions } from './useCases/IGetUserProfileUseCase'
+
 export { Encryption } from './auth/Encryption'
 
 export type { JwtPayload } from './auth/JwtPayload'
@@ -42,6 +61,6 @@ export type { UpdateImageMetadataQueryDTO } from './persistence/queries/UpdateIm
 export type { UpdateUserQueryDTO } from './persistence/queries/UpdateUserQueryDTO'
 export type { InsertUserQueryDTO } from './persistence/queries/InsertUserQueryDTO'
 
-export type { ImageMapperInterface } from './mappers/ImageMapperInterface'
-export type { ItemMapperInterface } from './mappers/ItemMapperInterface'
-export type { UserMapperInterface } from './mappers/UserMapperInterface'
+export type { IImageMapper } from './mappers/IImageMapper'
+export type { IItemMapper } from './mappers/IItemMapper'
+export type { IUserMapper } from './mappers/IUserMapper'

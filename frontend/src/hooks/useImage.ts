@@ -3,7 +3,7 @@ import { UpdateParam } from 'state/itemAtom'
 import { StorageSyncError } from 'domain/errors/StorageError'
 import { uuid } from '@hatsuportal/common'
 import { Image } from '@hatsuportal/domain'
-import { ImageApiServiceInterface } from 'infrastructure/repositories/ImageApiServiceInterface'
+import { IImageApiService } from 'infrastructure/repositories/IImageApiService'
 import { BrowserImageProcessingService } from 'services/BrowserImageProcessingService'
 
 type UseImageReturn = [
@@ -15,7 +15,7 @@ type UseImageReturn = [
 const DEBUG = false
 const imageProcessingService = new BrowserImageProcessingService()
 
-const useImage = (imageApiRepository: ImageApiServiceInterface, imageId?: string | null): UseImageReturn => {
+const useImage = (imageApiRepository: IImageApiService, imageId?: string | null): UseImageReturn => {
   const controllerRef = useRef<AbortController | null>(null)
 
   const [image, setImage] = useState<Image | null | undefined>(null)

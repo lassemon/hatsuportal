@@ -14,44 +14,14 @@ import {
 } from '@hatsuportal/application'
 import { ImageMapper, ItemMapper } from '@hatsuportal/infrastructure'
 import _ from 'lodash'
-import { CreateItemUseCase } from './useCases/CreateItemUseCase'
-import { ImageProcessingService } from '../image/services/ImageProcessingService'
-import { ImageStorageService } from '../image/services/ImageStorageService'
-import { ImageService } from '../image/services/ImageService'
-import { FindMyItemsUseCase } from './useCases/FindMyItemsUseCase'
-import { FindItemUseCase } from './useCases/FindItemUseCase'
 
 import Authentication from '../auth/Authentication'
-import { RemoveImageFromItemUseCase } from '../image/useCases/RemoveImageFromItemUseCase'
-import { CreateImageUseCase } from '../image/useCases/CreateImageUseCase'
-import { UpdateItemUseCase } from './useCases/UpdateItemUseCase'
-import { DeleteItemUseCase } from './useCases/DeleteItemUseCase'
-import { SearchItemsUseCase } from './useCases/SearchItemsUseCase'
-import ItemRepository from './ItemRepository'
-import ImageMetadataRepository from '/image/ImageMetadataRepository'
+
 import { RootController } from '/common/RootController'
 const authentication = new Authentication(passport)
 
-const imageProcessingService = new ImageProcessingService()
-const imageStorageService = new ImageStorageService()
-const imageService = new ImageService(imageProcessingService, imageStorageService)
-
 const imageMapper = new ImageMapper()
 const itemMapper = new ItemMapper()
-
-const itemRepository = new ItemRepository(itemMapper)
-const imageMetadataRepository = new ImageMetadataRepository(imageMapper)
-
-const removeImageFromItemUseCase = new RemoveImageFromItemUseCase(itemRepository, imageStorageService, imageMetadataRepository, itemMapper)
-const createImageUseCase = new CreateImageUseCase(imageService, imageMetadataRepository, imageMapper)
-const createItemUseCase = new CreateItemUseCase(itemRepository, createImageUseCase, removeImageFromItemUseCase, itemMapper)
-const updateItemUseCase = new UpdateItemUseCase(itemRepository, createImageUseCase, removeImageFromItemUseCase, itemMapper)
-
-const deleteItemUseCase = new DeleteItemUseCase(itemRepository, removeImageFromItemUseCase)
-const searchItemsUseCase = new SearchItemsUseCase(itemRepository)
-
-const findMyItemsUseCase = new FindMyItemsUseCase(itemRepository)
-const findItemUseCase = new FindItemUseCase(itemRepository)
 
 interface SearchQueryParams extends Omit<SearchItemsRequestDTO, 'order' | 'orderBy'> {
   order?: `${Order}`
@@ -65,6 +35,7 @@ export class ItemController extends RootController {
   @Get('items/')
   public async search(@Request() request: TsoaRequest, @Queries() queryParams: SearchQueryParams): Promise<SearchItemsResponseDTO> {
     if (request?.isAuthenticated()) {
+      const searchItemsUseCase = this.useCaseFactory.createSearchItemsUseCase()
       const searchResult = await searchItemsUseCase.execute({
         user: request.user,
         ...{
@@ -78,6 +49,7 @@ export class ItemController extends RootController {
         totalCount: searchResult.totalCount
       }
     } else {
+      const searchItemsUseCase = this.useCaseFactory.createSearchItemsUseCase()
       const searchResult = await searchItemsUseCase.execute({
         ...{
           order: Order.Ascending,
@@ -98,6 +70,7 @@ export class ItemController extends RootController {
   @Get('myitems/')
   public async myitems(@Request() request: TsoaRequest): Promise<MyItemsResponseDTO> {
     this.validateAuthentication(request)
+    const findMyItemsUseCase = this.useCaseFactory.createFindMyItemsUseCase()
     const myItems = await findMyItemsUseCase.execute({
       user: request.user
     })
@@ -112,6 +85,7 @@ export class ItemController extends RootController {
     if (!itemId) {
       throw new ApiError(422, 'Missing required path parameter "itemId"')
     }
+    const findItemUseCase = this.useCaseFactory.createFindItemUseCase()
     const item = await findItemUseCase.execute({
       user: request.user,
       itemId
@@ -126,6 +100,7 @@ export class ItemController extends RootController {
   @Post('item/')
   public async create(@Request() request: TsoaRequest, @Body() createItemRequest: CreateItemRequestDTO): Promise<CreateItemResponseDTO> {
     this.validateAuthentication(request)
+    const createItemUseCase = this.useCaseFactory.createCreateItemUseCase()
     const createdItemResponse = await createItemUseCase.execute({
       user: request.user,
       createItemRequest
@@ -144,6 +119,7 @@ export class ItemController extends RootController {
   @Put('item/')
   public async update(@Request() request: TsoaRequest, @Body() updateItemRequest: UpdateItemRequestDTO): Promise<UpdateItemResponseDTO> {
     this.validateAuthentication(request)
+    const updateItemUseCase = this.useCaseFactory.createUpdateItemUseCase()
     const updateItemResponse = await updateItemUseCase.execute({
       user: request.user,
       updateItemRequest
@@ -166,6 +142,7 @@ export class ItemController extends RootController {
     if (!itemId) {
       throw new ApiError(422, 'Missing required path parameter "itemId"')
     }
+    const deleteItemUseCase = this.useCaseFactory.createDeleteItemUseCase()
     const deletedItem = await deleteItemUseCase.execute({
       itemId: itemId,
       user: request.user

@@ -1,11 +1,11 @@
-import { BrowserImageProcessingOptions, BrowserImageProcessingServiceInterface } from '@hatsuportal/application'
+import { BrowserImageProcessingOptions, IBrowserImageProcessingService } from '@hatsuportal/application'
 
 const defaultOptions = {
   maxWidth: 320,
   maxHeight: 320
 }
 
-export class BrowserImageProcessingService implements BrowserImageProcessingServiceInterface {
+export class BrowserImageProcessingService implements IBrowserImageProcessingService {
   resizeImage(base64Image: string, resizeOptions: BrowserImageProcessingOptions, callback: (base64Image: string) => void) {
     const options = { ...defaultOptions, ...resizeOptions }
 

@@ -7,7 +7,7 @@ import { UpdateParam, itemAtom } from 'state/itemAtom'
 import config from 'config'
 import { unstable_batchedUpdates } from 'react-dom'
 import { Item } from '@hatsuportal/domain'
-import { ItemApiServiceInterface } from 'infrastructure/repositories/ItemApiServiceInterface'
+import { IItemApiService } from 'infrastructure/repositories/IItemApiService'
 import { ITEM_DEFAULTS } from 'defaults'
 
 const DEBUG = false
@@ -51,7 +51,7 @@ export interface UseItemWithImageOptions {
 }
 
 const useItem = (
-  itemApiService: ItemApiServiceInterface,
+  itemApiService: IItemApiService,
   itemId?: string,
   options: UseItemWithImageOptions = { persist: false, useDefault: true }
 ): UseItemReturn => {

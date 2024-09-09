@@ -1,8 +1,8 @@
-import { Encryption, InsertUserQueryDTO, UpdateUserQueryDTO, UserServiceInterface } from '@hatsuportal/application'
-import { ApiError, UserRepositoryInterface } from '@hatsuportal/domain'
+import { Encryption, InsertUserQueryDTO, UpdateUserQueryDTO, IUserService } from '@hatsuportal/application'
+import { ApiError, IUserRepository } from '@hatsuportal/domain'
 
-export class UserService implements UserServiceInterface {
-  constructor(private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
+export class UserService implements IUserService {
+  constructor(private readonly userRepository: IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
 
   async validatePasswordChange(userId: string, newPassword: string, oldPassword?: string): Promise<boolean> {
     if (!oldPassword) {

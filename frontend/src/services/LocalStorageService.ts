@@ -1,8 +1,8 @@
 import { unixtimeNow } from '@hatsuportal/common'
-import { LocalStorageServiceInterface } from 'infrastructure/repositories/LocalStorageServiceInterface'
+import { ILocalStorageService } from 'infrastructure/repositories/ILocalStorageService'
 import _ from 'lodash'
 
-export class LocalStorageService<T> implements LocalStorageServiceInterface<T> {
+export class LocalStorageService<T> implements ILocalStorageService<T> {
   async findById(key: string): Promise<T> {
     const storedItem = JSON.parse(localStorage.getItem(key) || '{}')
     return await Promise.resolve(!_.isEmpty(storedItem) ? storedItem : null)

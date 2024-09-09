@@ -5,7 +5,7 @@ import { InsertUserQueryDTO } from '../persistence/queries/InsertUserQueryDTO'
 import { UpdateUserRequestDTO } from '../api/requests/UpdateUserRequestDTO'
 import { UpdateUserQueryDTO } from '../persistence/queries/UpdateUserQueryDTO'
 
-export interface UserMapperInterface {
+export interface IUserMapper {
   createRequestToUser(createUserRequest: CreateUserRequestDTO): User
   updateRequestToUser(existingUser: UserDTO, updateUserRequest: UpdateUserRequestDTO): User
   toInsertQuery(user: UserDTO, password: string): Promise<InsertUserQueryDTO>

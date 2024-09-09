@@ -1,4 +1,4 @@
-import { ApiError, UnknownError, User, UserDatabaseEntity, UserRepositoryInterface } from '@hatsuportal/domain'
+import { ApiError, UnknownError, User, UserDatabaseEntity, IUserRepository } from '@hatsuportal/domain'
 import { Logger, unixtimeNow } from '@hatsuportal/common'
 import { DateTime } from 'luxon'
 import { UserMapper } from '@hatsuportal/infrastructure'
@@ -7,7 +7,7 @@ import connection from '../common/database/connection'
 
 const logger = new Logger('UserRepository')
 
-class UserRepository implements UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO> {
+class UserRepository implements IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO> {
   private userMapper: UserMapper
 
   constructor() {

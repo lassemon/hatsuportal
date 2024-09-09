@@ -14,7 +14,7 @@ export interface ItemListResponse {
   totalCount: number
 }
 
-export interface ItemApiServiceInterface {
+export interface IItemApiService {
   findAll(options?: FetchOptions): Promise<SearchItemsResponseDTO>
   search(query: SearchItemsRequestDTO, options?: FetchOptions): Promise<SearchItemsResponseDTO>
   myitems(options?: FetchOptions): Promise<MyItemsResponseDTO>

@@ -1,6 +1,6 @@
 import path from 'path'
 import { promises as fs } from 'node:fs'
-import { ImageStorageServiceInterface } from '@hatsuportal/application'
+import { IImageStorageService } from '@hatsuportal/application'
 import { Logger } from '@hatsuportal/common'
 import sanitize from 'sanitize-filename'
 import { UnknownError } from '@hatsuportal/domain'
@@ -9,7 +9,7 @@ const logger = new Logger('ImageStorageService')
 
 const imagesBasePath = process.env.IMAGES_BASE_PATH || './images'
 
-export class ImageStorageService implements ImageStorageServiceInterface {
+export class ImageStorageService implements IImageStorageService {
   async writeImageBufferToFile(imageBuffer: Buffer, fileName: string): Promise<void> {
     const sanitizedFileName = sanitize(fileName)
     const outputPath = `${imagesBasePath}/${sanitizedFileName}`

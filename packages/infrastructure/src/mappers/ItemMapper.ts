@@ -4,13 +4,13 @@ import {
   CreateItemRequestDTO,
   ItemResponseDTO,
   InsertItemQueryDTO,
-  ItemMapperInterface,
+  IItemMapper,
   UpdateItemQueryDTO,
   UpdateItemRequestDTO
 } from '@hatsuportal/application'
 import _ from 'lodash'
 
-export class ItemMapper implements ItemMapperInterface {
+export class ItemMapper implements IItemMapper {
   createRequestToItem(createRequest: CreateItemRequestDTO, user: User): Item {
     const itemBlueprint: ItemDTO = {
       id: uuid(),

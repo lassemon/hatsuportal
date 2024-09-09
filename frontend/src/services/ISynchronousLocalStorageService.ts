@@ -1,4 +1,4 @@
-export interface SynchronousLocalStorageServiceInterface<T> {
+export interface ISynchronousLocalStorageService<T> {
   findById(id?: string): T
   store(entity: T | null, key?: string): T
   delete(id: string): T

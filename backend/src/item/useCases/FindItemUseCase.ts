@@ -3,29 +3,17 @@ import {
   InsertItemQueryDTO,
   SearchItemsQueryDTO,
   UpdateItemQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IFindItemUseCase,
+  IFindItemUseCaseOptions
 } from '@hatsuportal/application'
-import { ApiError, ItemDTO, ItemRepositoryInterface, User, Visibility } from '@hatsuportal/domain'
+import { ApiError, ItemDTO, IItemRepository, Visibility } from '@hatsuportal/domain'
 
-export interface FindItemUseCaseOptions extends UseCaseOptionsInterface {
-  user?: User
-  itemId: string
-}
-
-export type FindItemUseCaseInterface = UseCaseInterface<FindItemUseCaseOptions, ItemDTO>
-
-export class FindItemUseCase implements FindItemUseCaseInterface {
+export class FindItemUseCase implements IFindItemUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>
   ) {}
 
-  async execute({ user, itemId }: FindItemUseCaseOptions): Promise<ItemDTO> {
+  async execute({ user, itemId }: IFindItemUseCaseOptions): Promise<ItemDTO> {
     const item = await this.itemRepository.findById(itemId)
     if (!item || (item.visibility === Visibility.LoggedIn && !user)) {
       throw new ApiError(404, 'NotFound')

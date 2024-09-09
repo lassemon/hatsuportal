@@ -1,26 +1,19 @@
 import {
-  CreateUserRequestDTO,
   InsertUserQueryDTO,
   UpdateUserQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface,
-  UserMapperInterface
+  IUserMapper,
+  ICreateUserUseCase,
+  ICreateUserUseCaseOptions
 } from '@hatsuportal/application'
-import { UserDTO, UserRepositoryInterface } from '@hatsuportal/domain'
+import { UserDTO, IUserRepository } from '@hatsuportal/domain'
 
-export interface CreateUserUseCaseOptions extends UseCaseOptionsInterface {
-  createUserRequest: CreateUserRequestDTO
-}
-
-export type CreateUserUseCaseInterface = UseCaseInterface<CreateUserUseCaseOptions, UserDTO>
-
-export class CreateUserUseCase implements CreateUserUseCaseInterface {
+export class CreateUserUseCase implements ICreateUserUseCase {
   constructor(
-    private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>,
-    private readonly userMapper: UserMapperInterface
+    private readonly userRepository: IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO>,
+    private readonly userMapper: IUserMapper
   ) {}
 
-  async execute({ createUserRequest }: CreateUserUseCaseOptions): Promise<UserDTO> {
+  async execute({ createUserRequest }: ICreateUserUseCaseOptions): Promise<UserDTO> {
     const user = this.userMapper.createRequestToUser(createUserRequest)
     const insertQuery = await this.userMapper.toInsertQuery(user.serialize(), createUserRequest.password)
     const createdUser = await this.userRepository.insert(insertQuery)

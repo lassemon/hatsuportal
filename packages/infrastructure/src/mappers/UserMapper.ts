@@ -6,12 +6,12 @@ import {
   InsertUserQueryDTO,
   UpdateUserQueryDTO,
   UpdateUserRequestDTO,
-  UserMapperInterface,
+  IUserMapper,
   UserResponseDTO
 } from '@hatsuportal/application'
 import _ from 'lodash'
 
-export class UserMapper implements UserMapperInterface {
+export class UserMapper implements IUserMapper {
   createRequestToUser(createRequest: CreateUserRequestDTO): User {
     const userBlueprint: UserDTO = {
       id: uuid(),

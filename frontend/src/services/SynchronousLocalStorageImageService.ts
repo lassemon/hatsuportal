@@ -1,10 +1,10 @@
 import { ImageDTO } from '@hatsuportal/domain'
 import { SynchronousLocalStorageService } from './SynchronousLocalStorageService'
-import { SynchronousLocalStorageServiceInterface } from './SynchronousLocalStorageServiceInterface'
+import { ISynchronousLocalStorageService } from './ISynchronousLocalStorageService'
 
 export const IMAGE_STATE_NAME = 'imageState'
 
-export class SynchronousLocalStorageImageService implements SynchronousLocalStorageServiceInterface<ImageDTO> {
+export class SynchronousLocalStorageImageService implements ISynchronousLocalStorageService<ImageDTO> {
   constructor(private readonly localStorageRepository: SynchronousLocalStorageService<ImageDTO>) {}
 
   findById(id: string) {

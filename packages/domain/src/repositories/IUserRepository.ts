@@ -2,7 +2,7 @@ import { User, UserDatabaseEntity } from '../entities/User'
 
 // return User domain entity here instead of UserDTO
 // to adhere to ddd princibles and allow the domain to directly work with a rich model
-export interface UserRepositoryInterface<InsertUserQuery, UpdateUserQuery> {
+export interface IUserRepository<InsertUserQuery, UpdateUserQuery> {
   getAll(): Promise<User[]>
   findById(userId: string): Promise<User | null>
   findWithPasswordById(userId: string): Promise<UserDatabaseEntity | null>

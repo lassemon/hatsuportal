@@ -1,9 +1,9 @@
 import { FetchOptions, CreateUserRequestDTO, UserResponseDTO, UpdateUserRequestDTO } from '@hatsuportal/application'
 import { ApiError } from '@hatsuportal/domain'
 import { getJson, postJson, putJson } from 'infrastructure/dataAccess/http/fetch'
-import { UserApiServiceInterface } from '../infrastructure/repositories/UserApiServiceInterface'
+import { IUserApiService } from '../infrastructure/repositories/IUserApiService'
 
-class UserApiService implements UserApiServiceInterface {
+class UserApiService implements IUserApiService {
   async findAll(options?: FetchOptions): Promise<UserResponseDTO[]> {
     throw new ApiError(501, 'NotImplemented')
   }

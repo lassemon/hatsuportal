@@ -2,7 +2,7 @@ import { isEmpty } from 'lodash'
 import { PassportStatic } from 'passport'
 import { Strategy as JwtStrategy, ExtractJwt, VerifiedCallback, StrategyOptions } from 'passport-jwt'
 import express from 'express'
-import { ApiError, User, UserRepositoryInterface } from '@hatsuportal/domain'
+import { ApiError, User, IUserRepository } from '@hatsuportal/domain'
 import { JwtPayload } from '@hatsuportal/application'
 import { InsertUserQueryDTO, UpdateUserQueryDTO } from '@hatsuportal/application'
 import UserRepository from '/user/UserRepository'
@@ -10,7 +10,7 @@ import UserRepository from '/user/UserRepository'
 export default class Authentication {
   private passport: PassportStatic
   private static instance: Authentication
-  private userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>
+  private userRepository: IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO>
 
   constructor(passport: PassportStatic) {
     this.passport = passport

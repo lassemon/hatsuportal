@@ -1,34 +1,26 @@
 import {
-  ImageMapperInterface,
-  ImageServiceInterface,
+  IImageMapper,
+  IImageService,
   InsertImageMetadataQueryDTO,
   UpdateImageMetadataQueryDTO,
-  UpdateImageRequestDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IUpdateImageUseCase,
+  IUpdateImageUseCaseOptions
 } from '@hatsuportal/application'
 
-import { ApiError, ImageDTO, ImageMetadata, ImageMetadataRepositoryInterface } from '@hatsuportal/domain'
+import { ApiError, ImageDTO, ImageMetadata, IImageMetadataRepository } from '@hatsuportal/domain'
 import _ from 'lodash'
 import { Logger } from '@hatsuportal/common'
 
 const logger = new Logger('UpdateImageUseCase')
 
-export interface UpdateImageUseCaseOptions extends UseCaseOptionsInterface {
-  updateImageRequest: UpdateImageRequestDTO
-  previousFileName?: string
-}
-
-export type UpdateImageUseCaseInterface = UseCaseInterface<UpdateImageUseCaseOptions, ImageDTO>
-
-export class UpdateImageUseCase implements UpdateImageUseCaseInterface {
+export class UpdateImageUseCase implements IUpdateImageUseCase {
   constructor(
-    private readonly imageService: ImageServiceInterface,
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly imageMapper: ImageMapperInterface
+    private readonly imageService: IImageService,
+    private readonly imageMetadataRepository: IImageMetadataRepository<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
+    private readonly imageMapper: IImageMapper
   ) {}
 
-  async execute({ updateImageRequest }: UpdateImageUseCaseOptions): Promise<ImageDTO> {
+  async execute({ updateImageRequest }: IUpdateImageUseCaseOptions): Promise<ImageDTO> {
     const existingImageMetadata = await this.imageMetadataRepository.findById(updateImageRequest.id)
     if (!existingImageMetadata) {
       throw new ApiError(405, 'MethodNotAllowed', `Cannot update image with id ${updateImageRequest.id} because it does not exist.`)

@@ -2,27 +2,13 @@ import { Body, Delete, Get, Middlewares, Post, Put, Request, Response, Route, Su
 import Authentication from '../auth/Authentication'
 import passport from 'passport'
 import { TsoaRequest } from '../common/entities/TsoaRequest'
-import { UpdateUserUseCase } from './useCases/UpdateUserUseCase'
-import { UserMapper, UserService } from '@hatsuportal/infrastructure'
+import { UserMapper } from '@hatsuportal/infrastructure'
 import { CreateUserRequestDTO, UpdateUserRequestDTO, UserResponseDTO } from '@hatsuportal/application'
-import { CreateUserUseCase } from './useCases/CreateUserUseCase'
-import { GetAllUsersUseCase } from './useCases/GetAllUsersUseCase'
-import { FindUserUseCase } from './useCases/FindUserUseCase'
-import { DeactivateUserUseCase } from './useCases/DeadtivateUserUseCase'
-import UserRepository from './UserRepository'
 import { ApiError } from '@hatsuportal/domain'
 import { RootController } from '/common/RootController'
 
 const authentication = new Authentication(passport)
-
 const userMapper = new UserMapper()
-const userRepository = new UserRepository()
-const userService = new UserService(userRepository)
-const createUserUseCase = new CreateUserUseCase(userRepository, userMapper)
-const updateUserUseCase = new UpdateUserUseCase(userMapper, userRepository, userService)
-const getAllUsersUseCase = new GetAllUsersUseCase(userRepository)
-const findUserUseCase = new FindUserUseCase(userRepository)
-const deactivateUserUseCase = new DeactivateUserUseCase(userRepository)
 
 @Route('/user')
 export class UserController extends RootController {
@@ -38,6 +24,7 @@ export class UserController extends RootController {
   public async getAll(@Request() request: TsoaRequest): Promise<UserResponseDTO[]> {
     this.validateAuthentication(request)
 
+    const getAllUsersUseCase = this.useCaseFactory.createGetAllUsersUseCase()
     const users = await getAllUsersUseCase.execute({
       user: request.user
     })
@@ -61,6 +48,7 @@ export class UserController extends RootController {
       throw new ApiError(501, 'NotImplemented', 'Getting user by id is not yet implemented.')
     }
 
+    const findUserUseCase = this.useCaseFactory.createFindUserUseCase()
     const user = await findUserUseCase.execute({
       user: request.user
     })
@@ -76,6 +64,7 @@ export class UserController extends RootController {
   public async insert(@Request() request: TsoaRequest, @Body() createUserRequest: CreateUserRequestDTO): Promise<UserResponseDTO> {
     this.validateAuthentication(request)
 
+    const createUserUseCase = this.useCaseFactory.createCreateUserUseCase()
     const createdUser = await createUserUseCase.execute({
       createUserRequest
     })
@@ -92,6 +81,7 @@ export class UserController extends RootController {
   public async put(@Request() request: TsoaRequest, @Body() requestBody: UpdateUserRequestDTO): Promise<UserResponseDTO> {
     this.validateAuthentication(request)
 
+    const updateUserUseCase = this.useCaseFactory.createUpdateUserUseCase()
     const updatedUser = await updateUserUseCase.execute({
       userUpdateRequest: requestBody,
       user: request.user
@@ -108,6 +98,7 @@ export class UserController extends RootController {
   @Delete('{id}')
   public async delete(@Request() request: TsoaRequest, id: string): Promise<void> {
     this.validateAuthentication(request)
+    const deactivateUserUseCase = this.useCaseFactory.createDeactivateUserUseCase()
     await deactivateUserUseCase.execute({
       userId: id,
       user: request.user

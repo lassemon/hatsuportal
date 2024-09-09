@@ -3,28 +3,17 @@ import {
   InsertItemQueryDTO,
   SearchItemsQueryDTO,
   UpdateItemQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IFindMyItemsUseCase,
+  IFindMyItemsUseCaseOptions
 } from '@hatsuportal/application'
-import { ItemDTO, ItemRepositoryInterface, User } from '@hatsuportal/domain'
+import { ItemDTO, IItemRepository } from '@hatsuportal/domain'
 
-export interface FindMyItemsUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-}
-
-export type FindMyItemsUseCaseInterface = UseCaseInterface<FindMyItemsUseCaseOptions, ItemDTO[]>
-
-export class FindMyItemsUseCase implements FindMyItemsUseCaseInterface {
+export class FindMyItemsUseCase implements IFindMyItemsUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>
   ) {}
 
-  async execute({ user }: FindMyItemsUseCaseOptions): Promise<ItemDTO[]> {
+  async execute({ user }: IFindMyItemsUseCaseOptions): Promise<ItemDTO[]> {
     return (await this.itemRepository.findAllForUser(user.id)).map((item) => item.serialize())
   }
 }

@@ -1,10 +1,10 @@
-import { LocalStorageServiceInterface } from '../infrastructure/repositories/LocalStorageServiceInterface'
+import { ILocalStorageService } from '../infrastructure/repositories/ILocalStorageService'
 import { ItemDTO } from '@hatsuportal/domain'
 
 export const ITEM_STATE_NAME = 'itemState'
 
-export class LocalStorageItemService implements LocalStorageServiceInterface<ItemDTO> {
-  constructor(private readonly localStorageRepository: LocalStorageServiceInterface<ItemDTO>) {}
+export class LocalStorageItemService implements ILocalStorageService<ItemDTO> {
+  constructor(private readonly localStorageRepository: ILocalStorageService<ItemDTO>) {}
 
   async findById(id?: string) {
     const itemJSON = await this.localStorageRepository.findById(ITEM_STATE_NAME)

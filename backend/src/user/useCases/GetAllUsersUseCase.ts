@@ -1,16 +1,10 @@
-import { InsertUserQueryDTO, UpdateUserQueryDTO, UseCaseInterface, UseCaseOptionsInterface } from '@hatsuportal/application'
-import { ApiError, User, UserDTO, UserRepositoryInterface } from '@hatsuportal/domain'
+import { IGetAllUsersUseCase, IGetAllUsersUseCaseOptions, InsertUserQueryDTO, UpdateUserQueryDTO } from '@hatsuportal/application'
+import { ApiError, UserDTO, IUserRepository } from '@hatsuportal/domain'
 
-export interface GetAllUsersUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-}
+export class GetAllUsersUseCase implements IGetAllUsersUseCase {
+  constructor(private readonly userRepository: IUserRepository<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
 
-export type GetAllUsersUseCaseInterface = UseCaseInterface<GetAllUsersUseCaseOptions, UserDTO[]>
-
-export class GetAllUsersUseCase implements GetAllUsersUseCaseInterface {
-  constructor(private readonly userRepository: UserRepositoryInterface<InsertUserQueryDTO, UpdateUserQueryDTO>) {}
-
-  async execute({ user }: GetAllUsersUseCaseOptions): Promise<UserDTO[]> {
+  async execute({ user }: IGetAllUsersUseCaseOptions): Promise<UserDTO[]> {
     if (!user.isAdmin()) {
       throw new ApiError(403, 'Forbidden', `Access denied for roles '${user.roles}': Only admin users can retrieve the list of all users.`)
     }

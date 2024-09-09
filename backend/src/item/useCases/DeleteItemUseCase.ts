@@ -3,31 +3,19 @@ import {
   InsertItemQueryDTO,
   SearchItemsQueryDTO,
   UpdateItemQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IDeleteItemUseCase,
+  IDeleteItemUseCaseOptions,
+  IRemoveImageFromItemUseCase
 } from '@hatsuportal/application'
-import { RemoveImageFromItemUseCaseInterface } from '../../image/useCases/RemoveImageFromItemUseCase'
-import { ApiError, ItemDTO, ItemRepositoryInterface, User } from '@hatsuportal/domain'
+import { ApiError, ItemDTO, IItemRepository } from '@hatsuportal/domain'
 
-export interface DeleteItemUseCaseOptions extends UseCaseOptionsInterface {
-  itemId: string
-  user: User
-}
-
-export type DeleteItemUseCaseInterface = UseCaseInterface<DeleteItemUseCaseOptions, ItemDTO>
-
-export class DeleteItemUseCase implements DeleteItemUseCaseInterface {
+export class DeleteItemUseCase implements IDeleteItemUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >,
-    private readonly removeImageFromItemUseCase: RemoveImageFromItemUseCaseInterface
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>,
+    private readonly removeImageFromItemUseCase: IRemoveImageFromItemUseCase
   ) {}
 
-  async execute({ itemId, user }: DeleteItemUseCaseOptions): Promise<ItemDTO> {
+  async execute({ itemId, user }: IDeleteItemUseCaseOptions): Promise<ItemDTO> {
     const itemToDelete = await this.itemRepository.findById(itemId)
     if (!itemToDelete) {
       throw new ApiError(404, 'NotFound', `Could not delete item with id ${itemId} because the item does not exist.`)

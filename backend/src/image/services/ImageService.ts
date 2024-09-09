@@ -1,11 +1,11 @@
 import { ApiError, ImageMetadataDTO } from '@hatsuportal/domain'
-import { ImageProcessingServiceInterface, ImageServiceInterface, ImageStorageServiceInterface } from '@hatsuportal/application'
+import { IImageProcessingService, IImageService, IImageStorageService } from '@hatsuportal/application'
 import mime from 'mime-types'
 
-export class ImageService implements ImageServiceInterface {
+export class ImageService implements IImageService {
   constructor(
-    private readonly imageProcessingService: ImageProcessingServiceInterface,
-    private readonly imageStorageService: ImageStorageServiceInterface
+    private readonly imageProcessingService: IImageProcessingService,
+    private readonly imageStorageService: IImageStorageService
   ) {}
 
   convertBase64ImageToBuffer(base64ImageData: string) {

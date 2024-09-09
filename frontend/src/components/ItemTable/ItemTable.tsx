@@ -51,8 +51,8 @@ import { highlightTextPart } from 'utils/utils'
 import { TablePaginationActions } from './TablePaginationActions'
 import DeleteButton from 'components/DeleteButton'
 import { localStorageColorModeAtom } from 'components/Theme/Theme'
-import { ItemApiServiceInterface } from 'infrastructure/repositories/ItemApiServiceInterface'
-import { ImageApiServiceInterface } from 'infrastructure/repositories/ImageApiServiceInterface'
+import { IItemApiService } from 'infrastructure/repositories/IItemApiService'
+import { IImageApiService } from 'infrastructure/repositories/IImageApiService'
 
 const reverseOrder = (order: `${Order}`) => {
   return order === Order.Ascending ? Order.Descending : Order.Ascending
@@ -77,8 +77,8 @@ const ExpandCollapseTableCell: React.FC<{ closeAll: () => void; openAll: () => v
 
 interface ItemTableProps {
   items: Item[]
-  itemApiService: ItemApiServiceInterface
-  imageApiService: ImageApiServiceInterface
+  itemApiService: IItemApiService
+  imageApiService: IImageApiService
   setItemList: (value: React.SetStateAction<Item[]>) => void
   pageNumber: number
   itemsPerPage: number
@@ -335,8 +335,8 @@ interface TableItemRowProps {
   search?: string
   open?: boolean
   sx?: SxProps<Theme>
-  itemApiService: ItemApiServiceInterface
-  imageApiService: ImageApiServiceInterface
+  itemApiService: IItemApiService
+  imageApiService: IImageApiService
   authState: AuthState
   setItemList: (value: React.SetStateAction<Item[]>) => void
 }

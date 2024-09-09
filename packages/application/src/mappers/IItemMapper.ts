@@ -5,7 +5,7 @@ import { InsertItemQueryDTO } from '../persistence/queries/InsertItemQueryDTO'
 import { UpdateItemQueryDTO } from '../persistence/queries/UpdateItemQueryDTO'
 import { UpdateItemRequestDTO } from '../api/requests/UpdateItemRequestDTO'
 
-export interface ItemMapperInterface {
+export interface IItemMapper {
   createRequestToItem(createItemRequest: CreateItemRequestDTO, user: User): Item
   updateRequestToItem(existingItem: ItemDTO, updateItemRequest: UpdateItemRequestDTO): Item
   toInsertQuery(item: ItemDTO): InsertItemQueryDTO

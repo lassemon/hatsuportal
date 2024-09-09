@@ -3,7 +3,7 @@ import { Order } from '../enums/Order'
 
 // return Item domain entity here instead of UserDTO
 // to adhere to ddd princibles and allow the domain to directly work with a rich model
-export interface ItemRepositoryInterface<CountItemsQuery, SearchItemsQuery, InsertItemQuery, UpdateItemQuery> {
+export interface IItemRepository<CountItemsQuery, SearchItemsQuery, InsertItemQuery, UpdateItemQuery> {
   insert(item: InsertItemQuery, userId: string): Promise<Item>
   update(item: UpdateItemQuery): Promise<Item>
   count(query: CountItemsQuery): Promise<number>

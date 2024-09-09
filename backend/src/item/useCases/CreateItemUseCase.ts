@@ -1,36 +1,27 @@
-import { CountItemsQueryDTO, ImageResponseDTO, InsertItemQueryDTO, SearchItemsQueryDTO, UpdateItemQueryDTO } from '@hatsuportal/application'
-import { ImageDTO, ItemDTO, ItemRepositoryInterface, User } from '@hatsuportal/domain'
-import { CreateImageUseCase } from '../../image/useCases/CreateImageUseCase'
+import {
+  CountItemsQueryDTO,
+  ICreateImageUseCase,
+  ICreateItemUseCase,
+  ICreateItemUseCaseOptions,
+  ImageResponseDTO,
+  InsertItemQueryDTO,
+  IRemoveImageFromItemUseCase,
+  SearchItemsQueryDTO,
+  UpdateItemQueryDTO
+} from '@hatsuportal/application'
+import { IItemRepository } from '@hatsuportal/domain'
 
 import _ from 'lodash'
-import { CreateItemRequestDTO, ItemMapperInterface, UseCaseInterface, UseCaseOptionsInterface } from '@hatsuportal/application'
-import { RemoveImageFromItemUseCaseInterface } from '../../image/useCases/RemoveImageFromItemUseCase'
+import { IItemMapper } from '@hatsuportal/application'
 
-interface CreateItemUseCaseResponse {
-  item: ItemDTO
-  image: ImageDTO | null
-}
-
-export interface CreateItemUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-  createItemRequest: CreateItemRequestDTO
-}
-
-export type CreateItemUseCaseInterface = UseCaseInterface<CreateItemUseCaseOptions, CreateItemUseCaseResponse>
-
-export class CreateItemUseCase implements CreateItemUseCaseInterface {
+export class CreateItemUseCase implements ICreateItemUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >,
-    private readonly createImageUseCase: CreateImageUseCase,
-    private readonly removeImageFromItemUseCase: RemoveImageFromItemUseCaseInterface,
-    private readonly itemMapper: ItemMapperInterface
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>,
+    private readonly createImageUseCase: ICreateImageUseCase,
+    private readonly removeImageFromItemUseCase: IRemoveImageFromItemUseCase,
+    private readonly itemMapper: IItemMapper
   ) {}
-  async execute({ user, createItemRequest }: CreateItemUseCaseOptions): Promise<CreateItemUseCaseResponse> {
+  async execute({ user, createItemRequest }: ICreateItemUseCaseOptions) {
     const item = this.itemMapper.createRequestToItem(createItemRequest, user)
     // if item has existing images on the filesystem, remove them so that no 'ghost' files are
     // accidentally left on the filesystem

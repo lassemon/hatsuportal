@@ -1,16 +1,14 @@
-import { ImageMetadata, ImageMetadataDatabaseEntity, ImageMetadataDTO, ImageMetadataRepositoryInterface } from '@hatsuportal/domain'
+import { ImageMetadata, ImageMetadataDatabaseEntity, ImageMetadataDTO, IImageMetadataRepository } from '@hatsuportal/domain'
 import { unixtimeNow, uuid } from '@hatsuportal/common'
 import { Logger } from '@hatsuportal/common'
 import { UnknownError } from '@hatsuportal/domain'
-import { ImageMapperInterface, InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO } from '@hatsuportal/application'
+import { IImageMapper, InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO } from '@hatsuportal/application'
 import connection from '../common/database/connection'
 
 const logger = new Logger('ImageRepository')
 
-export default class ImageMetadataRepository
-  implements ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>
-{
-  constructor(private readonly imageMapper: ImageMapperInterface) {}
+export default class ImageMetadataRepository implements IImageMetadataRepository<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO> {
+  constructor(private readonly imageMapper: IImageMapper) {}
 
   async findById(id: string): Promise<ImageMetadata | null> {
     const imageMetadataRecord = await connection.select('*').from<any, ImageMetadataDatabaseEntity>('images').where('id', id).first()

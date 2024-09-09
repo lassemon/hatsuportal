@@ -1,41 +1,29 @@
 import {
   CountItemsQueryDTO,
-  ImageStorageServiceInterface,
+  IImageStorageService,
   InsertImageMetadataQueryDTO,
   InsertItemQueryDTO,
-  ItemMapperInterface,
+  IItemMapper,
   SearchItemsQueryDTO,
   UpdateImageMetadataQueryDTO,
   UpdateItemQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IRemoveImageFromItemUseCase,
+  IRemoveImageFromItemUseCaseOptions
 } from '@hatsuportal/application'
-import { ApiError, ImageMetadataRepositoryInterface, ItemDTO, ItemRepositoryInterface, User } from '@hatsuportal/domain'
+import { ApiError, IImageMetadataRepository, ItemDTO, IItemRepository } from '@hatsuportal/domain'
 import { Logger } from '@hatsuportal/common'
 
 const logger = new Logger('RemoveImageFromItemUseCase')
 
-export interface RemoveImageFromItemUseCaseOptions extends UseCaseOptionsInterface {
-  itemId: string
-  user: User
-}
-
-export type RemoveImageFromItemUseCaseInterface = UseCaseInterface<RemoveImageFromItemUseCaseOptions, ItemDTO>
-
-export class RemoveImageFromItemUseCase implements RemoveImageFromItemUseCaseInterface {
+export class RemoveImageFromItemUseCase implements IRemoveImageFromItemUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >,
-    private readonly imageStorageService: ImageStorageServiceInterface,
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly itemMapper: ItemMapperInterface
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>,
+    private readonly imageStorageService: IImageStorageService,
+    private readonly imageMetadataRepository: IImageMetadataRepository<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
+    private readonly itemMapper: IItemMapper
   ) {}
 
-  async execute({ itemId, user }: RemoveImageFromItemUseCaseOptions): Promise<ItemDTO> {
+  async execute({ itemId, user }: IRemoveImageFromItemUseCaseOptions): Promise<ItemDTO> {
     try {
       const existingItem = await this.itemRepository.findById(itemId)
 

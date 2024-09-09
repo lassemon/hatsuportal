@@ -1,6 +1,6 @@
 import { FetchOptions, CreateUserRequestDTO, UserResponseDTO, UpdateUserRequestDTO } from '@hatsuportal/application'
 
-export interface UserApiServiceInterface {
+export interface IUserApiService {
   findAll(options?: FetchOptions): Promise<UserResponseDTO[]>
   findById(userId: string, options?: FetchOptions): Promise<UserResponseDTO>
   count(options?: FetchOptions): Promise<number>

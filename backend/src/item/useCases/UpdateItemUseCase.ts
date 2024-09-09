@@ -2,45 +2,30 @@ import {
   CountItemsQueryDTO,
   ImageResponseDTO,
   InsertItemQueryDTO,
-  ItemMapperInterface,
+  IItemMapper,
   SearchItemsQueryDTO,
-  UpdateItemQueryDTO
+  UpdateItemQueryDTO,
+  IUpdateItemUseCase,
+  UpdateItemUseCaseOptions,
+  IRemoveImageFromItemUseCase,
+  ICreateImageUseCase
 } from '@hatsuportal/application'
-import { UpdateItemRequestDTO, UseCaseInterface, UseCaseOptionsInterface } from '@hatsuportal/application'
-import { ApiError, ImageDTO, ItemDTO, ItemRepositoryInterface, User } from '@hatsuportal/domain'
-import { CreateImageUseCase } from '../../image/useCases/CreateImageUseCase'
+import { ApiError, IItemRepository } from '@hatsuportal/domain'
 
 import _ from 'lodash'
-import { RemoveImageFromItemUseCaseInterface } from '../../image/useCases/RemoveImageFromItemUseCase'
+
 import { Logger } from '@hatsuportal/common'
 
 const logger = new Logger('UpdateItemUseCase')
 
-interface UpdateItemUseCaseResponse {
-  item: ItemDTO
-  image: ImageDTO | null
-}
-
-export interface UpdateItemUseCaseOptions extends UseCaseOptionsInterface {
-  user: User
-  updateItemRequest: UpdateItemRequestDTO
-}
-
-export type UpdateItemUseCaseInterface = UseCaseInterface<UpdateItemUseCaseOptions, UpdateItemUseCaseResponse>
-
-export class UpdateItemUseCase implements UpdateItemUseCaseInterface {
+export class UpdateItemUseCase implements IUpdateItemUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >,
-    private readonly createImageUseCase: CreateImageUseCase,
-    private readonly removeImageFromItemUseCase: RemoveImageFromItemUseCaseInterface,
-    private readonly itemMapper: ItemMapperInterface
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>,
+    private readonly createImageUseCase: ICreateImageUseCase,
+    private readonly removeImageFromItemUseCase: IRemoveImageFromItemUseCase,
+    private readonly itemMapper: IItemMapper
   ) {}
-  async execute({ user, updateItemRequest }: UpdateItemUseCaseOptions): Promise<UpdateItemUseCaseResponse> {
+  async execute({ user, updateItemRequest }: UpdateItemUseCaseOptions) {
     const { image } = updateItemRequest
 
     const existingItem = await this.itemRepository.findById(updateItemRequest.item.id)

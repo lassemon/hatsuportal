@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { ImageProcessingServiceInterface } from '@hatsuportal/application'
+import { IImageProcessingService } from '@hatsuportal/application'
 import Jimp from 'jimp'
 import webp from 'webp-converter'
 import fileType from 'file-type'
@@ -20,7 +20,7 @@ interface ResizeOptions {
   height?: number
 }
 
-export class ImageProcessingService implements ImageProcessingServiceInterface {
+export class ImageProcessingService implements IImageProcessingService {
   async resizeImage(buffer: Buffer, resizeOptions: ResizeOptions) {
     const options = { ...defaultOptions, ...resizeOptions }
     try {

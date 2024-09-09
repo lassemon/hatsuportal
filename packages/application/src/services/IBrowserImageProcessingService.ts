@@ -7,6 +7,6 @@ export interface BrowserImageProcessingOptions {
   mimeType?: 'image/png'
 }
 
-export interface BrowserImageProcessingServiceInterface {
+export interface IBrowserImageProcessingService {
   resizeImage(base64Image: string, resizeOptions: BrowserImageProcessingOptions, callback: (base64Image: string) => void): void
 }

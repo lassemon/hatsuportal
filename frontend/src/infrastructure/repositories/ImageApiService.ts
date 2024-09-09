@@ -1,9 +1,9 @@
 import { FetchOptions, ImageResponseDTO } from '@hatsuportal/application'
 import { Image } from '@hatsuportal/domain'
 import { deleteJson, getJson, postJson } from 'infrastructure/dataAccess/http/fetch'
-import { ImageApiServiceInterface } from './ImageApiServiceInterface'
+import { IImageApiService } from './IImageApiService'
 
-class ImageApiService implements ImageApiServiceInterface {
+class ImageApiService implements IImageApiService {
   async findById(imageId: string, options?: FetchOptions): Promise<ImageResponseDTO> {
     return await getJson<ImageResponseDTO>({ ...{ endpoint: `/image/${imageId ? imageId : ''}` }, ...options })
     //return new Image(imageResponse)

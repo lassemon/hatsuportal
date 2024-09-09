@@ -1,25 +1,19 @@
 import {
-  ImageServiceInterface,
+  IImageService,
   InsertImageMetadataQueryDTO,
   UpdateImageMetadataQueryDTO,
-  UseCaseInterface,
-  UseCaseOptionsInterface
+  IFindImageUseCase,
+  IFindImageUseCaseOptions
 } from '@hatsuportal/application'
-import { ApiError, Image, ImageDTO, ImageMetadataRepositoryInterface } from '@hatsuportal/domain'
+import { ApiError, Image, ImageDTO, IImageMetadataRepository } from '@hatsuportal/domain'
 
-export interface FindImageUseCaseOptions extends UseCaseOptionsInterface {
-  imageId: string
-}
-
-export type FindImageUseCaseInterface = UseCaseInterface<FindImageUseCaseOptions, ImageDTO>
-
-export class FindImageUseCase implements FindImageUseCaseInterface {
+export class FindImageUseCase implements IFindImageUseCase {
   constructor(
-    private readonly imageMetadataRepository: ImageMetadataRepositoryInterface<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
-    private readonly imageService: ImageServiceInterface
+    private readonly imageMetadataRepository: IImageMetadataRepository<InsertImageMetadataQueryDTO, UpdateImageMetadataQueryDTO>,
+    private readonly imageService: IImageService
   ) {}
 
-  async execute({ imageId }: FindImageUseCaseOptions): Promise<ImageDTO> {
+  async execute({ imageId }: IFindImageUseCaseOptions): Promise<ImageDTO> {
     const imageMetadata = await this.imageMetadataRepository.findById(imageId)
     if (!imageMetadata || !imageMetadata.fileName) {
       throw new ApiError(404, 'NotFound', `Image metadata for ${imageId} was NotFound from the database.`)

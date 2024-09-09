@@ -1,5 +1,5 @@
 import { LocalStorageItemService } from 'services/LocalStorageItemService'
-import { ItemApiServiceInterface } from '../infrastructure/repositories/ItemApiServiceInterface'
+import { IItemApiService } from '../infrastructure/repositories/IItemApiService'
 import { ImageDTO, Item, ItemDTO } from '@hatsuportal/domain'
 import { jsonToQueryString } from '@hatsuportal/infrastructure'
 import { defaultItem } from 'defaults'
@@ -18,7 +18,7 @@ import {
 
 const localStorageRepository = new LocalStorageService<ItemDTO>()
 
-class ItemApiService implements ItemApiServiceInterface {
+class ItemApiService implements IItemApiService {
   private localStorageItemService = new LocalStorageItemService(localStorageRepository)
 
   async findAll(options: FetchOptions = {}): Promise<SearchItemsResponseDTO> {

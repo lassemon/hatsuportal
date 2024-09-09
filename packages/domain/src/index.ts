@@ -19,8 +19,8 @@ export { ApiValidateError } from './errors/ApiValidateError'
 export { IllegalArgument } from './errors/IllegalArgument'
 export { UnknownError } from './errors/UnknownError'
 
-export type { ItemRepositoryInterface } from './repositories/ItemRepositoryInterface'
-export type { ImageMetadataRepositoryInterface } from './repositories/ImageMetadataRepositoryInterface'
-export type { UserRepositoryInterface } from './repositories/UserRepositoryInterface'
+export type { IItemRepository } from './repositories/IItemRepository'
+export type { IImageMetadataRepository } from './repositories/IImageMetadataRepository'
+export type { IUserRepository } from './repositories/IUserRepository'
 
-export type { PasswordEncryptionServiceInterface } from './services/PasswordEncryptionServiceInterface'
+export type { IPasswordEncryptionService } from './services/IPasswordEncryptionService'

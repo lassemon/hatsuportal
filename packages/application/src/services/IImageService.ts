@@ -1,6 +1,6 @@
-import { ImageMetadata, ImageMetadataDTO } from '@hatsuportal/domain'
+import { ImageMetadataDTO } from '@hatsuportal/domain'
 
-export interface ImageServiceInterface {
+export interface IImageService {
   convertBase64ImageToBuffer(base64ImageData: string): Buffer
   convertBufferToBase64Image(imageBuffer: Buffer, metadata: ImageMetadataDTO): string
   parseImageFilename(metadata: ImageMetadataDTO): string
@@ -12,4 +12,4 @@ export interface ImageServiceInterface {
   deleteImageFromFileSystem(fileName: string): Promise<void>
 }
 
-export default ImageServiceInterface
+export default IImageService

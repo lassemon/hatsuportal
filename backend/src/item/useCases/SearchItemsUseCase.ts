@@ -1,30 +1,14 @@
-import { SearchItemsRequestDTO, UseCaseInterface, UseCaseOptionsInterface } from '@hatsuportal/application'
+import { SearchItemsRequestDTO, ISearchItemsUseCase, ISearchItemsUseCaseOptions } from '@hatsuportal/application'
 import _ from 'lodash'
-import { Item, ItemDTO, ItemRepositoryInterface, ItemSortableKey, Order, UnknownError, User } from '@hatsuportal/domain'
+import { Item, IItemRepository, ItemSortableKey, Order, UnknownError } from '@hatsuportal/domain'
 import { CountItemsQueryDTO, InsertItemQueryDTO, SearchItemsQueryDTO, UpdateItemQueryDTO } from '@hatsuportal/application'
 
-interface SearchItemsUseCaseResponse {
-  items: ItemDTO[]
-  totalCount: number
-}
-
-export interface SearchItemsUseCaseOptions extends UseCaseOptionsInterface, SearchItemsRequestDTO {
-  user?: User
-}
-
-export type SearchItemsUseCaseInterface = UseCaseInterface<SearchItemsUseCaseOptions, SearchItemsUseCaseResponse>
-
-export class SearchItemsUseCase implements SearchItemsUseCaseInterface {
+export class SearchItemsUseCase implements ISearchItemsUseCase {
   constructor(
-    private readonly itemRepository: ItemRepositoryInterface<
-      CountItemsQueryDTO,
-      SearchItemsQueryDTO,
-      InsertItemQueryDTO,
-      UpdateItemQueryDTO
-    >
+    private readonly itemRepository: IItemRepository<CountItemsQueryDTO, SearchItemsQueryDTO, InsertItemQueryDTO, UpdateItemQueryDTO>
   ) {}
 
-  async execute(options: SearchItemsUseCaseOptions): Promise<SearchItemsUseCaseResponse> {
+  async execute(options: ISearchItemsUseCaseOptions) {
     const { user, ...itemSearchRequest } = options
     try {
       const isAnyFilterDefined = this.anyFilterDefined(itemSearchRequest)
@@ -68,7 +52,7 @@ export class SearchItemsUseCase implements SearchItemsUseCaseInterface {
     return items.slice(startIndex, endIndex)
   }
 
-  private searchItemsWithFilters = async (queryParams: SearchItemsUseCaseOptions) => {
+  private searchItemsWithFilters = async (queryParams: ISearchItemsUseCaseOptions) => {
     const itemCount = await this.itemRepository.count(this.constructCountItemsQueryParams(queryParams))
     const items = await this.itemRepository.search(this.constructSearchItemsQueryParams(queryParams))
     return {
@@ -110,7 +94,7 @@ export class SearchItemsUseCase implements SearchItemsUseCaseInterface {
     search,
     visibility,
     hasImage
-  }: Omit<SearchItemsUseCaseOptions, 'order' | 'orderBy'>) => {
+  }: Omit<ISearchItemsUseCaseOptions, 'order' | 'orderBy'>) => {
     return {
       userId: user?.id,
       onlyMyItems,
@@ -128,7 +112,7 @@ export class SearchItemsUseCase implements SearchItemsUseCaseInterface {
     search,
     visibility,
     hasImage
-  }: SearchItemsUseCaseOptions) => {
+  }: ISearchItemsUseCaseOptions) => {
     return {
       onlyMyItems,
       order,
